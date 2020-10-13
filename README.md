@@ -1,2 +1,4 @@
-# bar-go
-Build and release tools for Go
+bar-go
+======
+
+Build and release tools for Go.
