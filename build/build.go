@@ -11,22 +11,22 @@ import (
 
 var buildDate = time.Now().UTC().Format("2006.01.02-15.04.05")
 
+// TestAndBuild performs the standard build process.
+func TestAndBuild(packageName string, targets []*TargetSpec) {
+	if Test() == nil {
+		Build(packageName, targets)
+	}
+}
+
 // Test runs 'go test' for all packages in the current module.
 func Test() error {
 	return execute([]string{"go", "test", "./..."})
 }
 
-// TestAndBuild performs the standard build process.
-func TestAndBuild(packageName string) {
-	if Test() == nil {
-		Build(packageName, AllTargets...)
-	}
-}
-
 // Build runs 'go build' for the named package and supplied target definitions.
 // The resulting binary is stored in target specific subdirectories of the
 // directory 'artifacts'.
-func Build(packageName string, targets ...*TargetSpec) {
+func Build(packageName string, targets []*TargetSpec) {
 	for _, target := range targets {
 		buildOneTarget(packageName, target, "artifacts")
 	}

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 // TargetSpec describes a build target architecture.
@@ -42,6 +44,26 @@ func (target *TargetSpec) Env() []string {
 	return environment
 }
 
+// GetTargets TODO
+func GetTargets(filterList string) []*TargetSpec {
+	result := []*TargetSpec{}
+	for _, filter := range strings.Split(filterList, ",") {
+		if target := findTarget(filter); target != nil {
+			result = append(result, target)
+		}
+	}
+	return result
+}
+
+func findTarget(filter string) *TargetSpec {
+	for _, target := range AllTargets {
+		if target.Desc() == filter {
+			return target
+		}
+	}
+	return nil
+}
+
 // Predefined TargetSpecs
 var (
 	TargetWinAmd64   = &TargetSpec{"windows", "amd64"}
@@ -54,5 +76,9 @@ var (
 		TargetLinuxAmd64,
 		TargetLinuxArm,
 		TargetLinuxArm64,
+	}
+
+	DefaultTargets = []*TargetSpec{
+		{runtime.GOOS, runtime.GOARCH},
 	}
 )
