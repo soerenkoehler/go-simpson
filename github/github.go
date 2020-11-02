@@ -32,7 +32,22 @@ func NewContext(jsonContext string) *Context {
 	return context
 }
 
-// APICall ...
+// SetTag tags creates or updates the given <tag> to the commit <sha>.
+func (context *Context) SetTag(tag string, sha string) {
+	// TODO
+	body := map[string]string{
+		"ref": fmt.Sprintf("refs/tags/%s", tag),
+		"sha": sha,
+	}
+	if _, error := context.APICall(APIGetRef, "", fmt.Sprintf("tags/%s", tag)); error == nil {
+		context.APICall(APIUpdateRef, body)
+	} else {
+		context.APICall(APICreateRef, body)
+	}
+}
+
+// APICall executes an Github API on the given context, using the provided
+// endpoint and values.
 func (context *Context) APICall(
 	endpoint *Endpoint,
 	values ...interface{}) (string, error) {
@@ -60,9 +75,4 @@ func (context *Context) APICall(
 	}
 
 	return string(body), nil
-}
-
-// SetTag tags creates or updates the given <tag> to the commit <sha>.
-func SetTag(tag string, sha string) {
-	// TODO
 }
