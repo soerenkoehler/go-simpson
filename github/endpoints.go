@@ -12,9 +12,9 @@ type Endpoint struct {
 var (
 	APIGetRef    = &Endpoint{http.MethodGet, "git/ref/%s"}
 	APICreateRef = &Endpoint{http.MethodPost, "git/refs"}
-	APIUpdateRef = &Endpoint{http.MethodPatch, "git/refs/{ref}"}
+	APIUpdateRef = &Endpoint{http.MethodPatch, "git/refs/%s"}
 
-	APIGetReleaseByTag = &Endpoint{http.MethodGet, "releases/tags/{tag}"}
+	APIGetReleaseByTag = &Endpoint{http.MethodGet, "releases/tags/%s"}
 	APICreateRelease   = &Endpoint{http.MethodPost, "releases"}
-	APIUpdateRelease   = &Endpoint{http.MethodGet, "releases/{release_id}"}
+	APIUpdateRelease   = &Endpoint{http.MethodPatch, "releases/%s"}
 )

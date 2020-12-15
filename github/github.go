@@ -3,6 +3,7 @@ package github
 // TODO paginated responses
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -32,33 +33,23 @@ func NewContext(jsonContext string) *Context {
 	return context
 }
 
-// SetTag tags creates or updates the given <tag> to the commit <sha>.
-func (context *Context) SetTag(tag string, sha string) {
-	// TODO
-	body := map[string]string{
-		"ref": fmt.Sprintf("refs/tags/%s", tag),
-		"sha": sha,
-	}
-	if _, error := context.APICall(APIGetRef, "", fmt.Sprintf("tags/%s", tag)); error == nil {
-		context.APICall(APIUpdateRef, body)
-	} else {
-		context.APICall(APICreateRef, body)
-	}
-}
-
 // APICall executes an Github API on the given context, using the provided
 // endpoint and values.
 func (context *Context) APICall(
 	endpoint *Endpoint,
+	requestBody []byte,
 	values ...interface{}) (string, error) {
+
+	url := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s",
+		context.Repository,
+		fmt.Sprintf(endpoint.url, values...))
+	fmt.Printf("Request: %s\n%s\n", url, string(requestBody))
 
 	request, err := http.NewRequest(
 		endpoint.method,
-		fmt.Sprintf(
-			"https://api.github.com/repos/%s/%s",
-			context.Repository,
-			fmt.Sprintf(endpoint.url, values...)),
-		nil)
+		url,
+		bytes.NewBuffer(requestBody))
 	if err != nil {
 		return "", err
 	}
@@ -74,5 +65,15 @@ func (context *Context) APICall(
 		return "", err
 	}
 
-	return string(body), nil
+	bodyStr := string(body)
+
+	if isHTTPSuccess(response) {
+		return bodyStr, nil
+	}
+
+	return bodyStr, fmt.Errorf("Status: %d", response.StatusCode)
+}
+
+func isHTTPSuccess(response *http.Response) bool {
+	return response.StatusCode >= 200 && response.StatusCode < 300
 }

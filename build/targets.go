@@ -2,34 +2,21 @@ package build
 
 import (
 	"fmt"
-	"os"
-	"path"
-	"path/filepath"
-	"runtime"
 	"strings"
+
+	"github.com/soerenkoehler/simpson/util"
 )
 
 // TargetSpec describes a build target architecture.
 type TargetSpec struct {
-	os   string
-	arch string
+	os          string
+	arch        string
+	archiveType *util.ArchiveType
 }
 
 // Desc returns a string representation of the TargetSpec.
 func (target *TargetSpec) Desc() string {
 	return fmt.Sprintf("%s-%s", target.os, target.arch)
-}
-
-// Mkdir creates a subdirectory in 'parent' based on the TargetSpec and returns
-// the absolute path.
-func (target *TargetSpec) Mkdir(parent string) string {
-	targetDir := path.Join(parent, target.Desc())
-	os.MkdirAll(targetDir, 0777)
-	result, error := filepath.Abs(targetDir)
-	if error != nil {
-		panic(error)
-	}
-	return result
 }
 
 // Env returns a list of environment variables for the Go compiler based on the
@@ -44,7 +31,7 @@ func (target *TargetSpec) Env() []string {
 	return environment
 }
 
-// GetTargets TODO
+// GetTargets ... TODO
 func GetTargets(filterList string) []*TargetSpec {
 	result := []*TargetSpec{}
 	for _, filter := range strings.Split(filterList, ",") {
@@ -66,19 +53,15 @@ func findTarget(filter string) *TargetSpec {
 
 // Predefined TargetSpecs
 var (
-	TargetWinAmd64   = &TargetSpec{"windows", "amd64"}
-	TargetLinuxAmd64 = &TargetSpec{"linux", "amd64"}
-	TargetLinuxArm   = &TargetSpec{"linux", "arm"}
-	TargetLinuxArm64 = &TargetSpec{"linux", "arm64"}
+	TargetWinAmd64   = &TargetSpec{"windows", "amd64", util.ZIP}
+	TargetLinuxAmd64 = &TargetSpec{"linux", "amd64", util.TGZ}
+	TargetLinuxArm   = &TargetSpec{"linux", "arm", util.TGZ}
+	TargetLinuxArm64 = &TargetSpec{"linux", "arm64", util.TGZ}
 
 	AllTargets = []*TargetSpec{
 		TargetWinAmd64,
 		TargetLinuxAmd64,
 		TargetLinuxArm,
 		TargetLinuxArm64,
-	}
-
-	DefaultTargets = []*TargetSpec{
-		{runtime.GOOS, runtime.GOARCH},
 	}
 )
