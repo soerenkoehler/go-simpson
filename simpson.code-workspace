@@ -6,7 +6,7 @@
 	],
 	"settings": {
 		"files.exclude": {
-			"**/__debug*": true,
+			"**/__debug*": true
 		}
 	}
 }
