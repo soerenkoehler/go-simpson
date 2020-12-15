@@ -1,4 +1,11 @@
-bar-go
-======
+Simpson
+=======
 
-Build and release tools for Go.
+Simpson is a  
+
+**B**uild  
+**A**nd  
+**R**elease  
+**T**ool  
+
+for Go on Github.
