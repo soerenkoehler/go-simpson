@@ -1,7 +1,7 @@
 package main
 
 var _Version = "DEV"
-var _Usage = "Build And Release Tool for Go (" + _Version + `)
+var _Usage = "BaRT (Build and Release Tool) " + _Version + `
 
 Usage:
     simpson PACKAGE (--all-targets | --targets TARGETS) [--release]
