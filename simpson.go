@@ -14,9 +14,9 @@ func main() {
 	opts, err := docopt.ParseArgs(_Usage, nil, _Version)
 	if err == nil {
 		fmt.Println(opts) // TODO debug or info?
-		buildArtifacts(&opts)
+		artifacts := buildArtifacts(&opts)
 		if optRelease, _ := opts.Bool("--release"); optRelease {
-			releaseArtifacts(&opts)
+			releaseArtifacts(&opts, artifacts)
 		}
 	} else {
 		fmt.Fprintln(os.Stderr, err)
@@ -24,18 +24,18 @@ func main() {
 	}
 }
 
-func buildArtifacts(opts *docopt.Opts) {
-	var targets []*build.TargetSpec
+func buildArtifacts(opts *docopt.Opts) []string {
+	var targets []build.TargetSpec
 	if optAllTargets, _ := opts.Bool("--all-targets"); optAllTargets {
 		targets = build.AllTargets
 	} else if optTargets, err := opts.String("--targets"); err == nil {
 		targets = build.GetTargets(optTargets)
 	}
 	optPackage, _ := opts.String("PACKAGE")
-	build.TestAndBuild(optPackage, targets)
+	return build.TestAndBuild(optPackage, targets)
 }
 
-func releaseArtifacts(opts *docopt.Opts) {
+func releaseArtifacts(opts *docopt.Opts, artifacts []string) {
 	githubContext := github.NewDefaultContext()
 	fmt.Println(githubContext)
 	if len(githubContext.Token) > 0 {
@@ -44,8 +44,9 @@ func releaseArtifacts(opts *docopt.Opts) {
 		} else if strings.HasPrefix(githubContext.Ref, "refs/heads/") {
 			githubContext.SetTag("latest", githubContext.Sha)
 			release := githubContext.GetRelease("latest")
-			optPackage, _ := opts.String("PACKAGE")
-			release.UploadArtifacts(optPackage)
+			for _, artifact := range artifacts {
+				release.UploadArtifact(artifact)
+			}
 		}
 	} else {
 		fmt.Fprintln(os.Stderr, "Error: No Github API token found.")

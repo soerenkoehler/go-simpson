@@ -10,13 +10,16 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
+const artifactDir = "artifacts"
+
 var buildDate = time.Now().UTC().Format("2006.01.02-15:04:05")
 
 // TestAndBuild performs the standard build process.
-func TestAndBuild(packageName string, targets []*TargetSpec) {
+func TestAndBuild(packageName string, targets []TargetSpec) []string {
 	if Test() == nil {
-		Build(packageName, targets)
+		return Build(packageName, targets)
 	}
+	return []string{}
 }
 
 // Test runs 'go test' for all packages in the current module.
@@ -27,13 +30,19 @@ func Test() error {
 // Build runs 'go build' for the named package and supplied target definitions.
 // The resulting binary is stored in target specific subdirectories of the
 // directory 'artifacts'.
-func Build(packageName string, targets []*TargetSpec) {
-	artifactDir := "artifacts"
+func Build(packageName string, targets []TargetSpec) []string {
 
 	os.RemoveAll(artifactDir)
 
+	artifacts := []string{}
+
 	for _, target := range targets {
-		if err := buildArtifact(packageName, target, artifactDir); err != nil {
+		if path, err := buildArtifact(
+			packageName,
+			target,
+			artifactDir); err == nil {
+			artifacts = append(artifacts, path)
+		} else {
 			fmt.Printf(
 				"Package: %s\nArtifactDir: %s\nError: %v\n",
 				packageName,
@@ -41,12 +50,14 @@ func Build(packageName string, targets []*TargetSpec) {
 				err)
 		}
 	}
+
+	return artifacts
 }
 
 func buildArtifact(
 	packageName string,
-	target *TargetSpec,
-	artifactDir string) error {
+	target TargetSpec,
+	artifactDir string) (string, error) {
 
 	// TODO include git ref info
 	version := fmt.Sprintf("%s %s", buildDate, target.Desc())
@@ -61,23 +72,27 @@ func buildArtifact(
 			createArtifactSubdir(target, artifactDir),
 			packageName},
 		target.Env()...); err != nil {
-		return err
+		return "", err
 	}
 
-	return util.CreateArchive(
+	archivePath := filepath.Join(
+		artifactDir,
+		fmt.Sprintf(
+			"%s-%s",
+			realPackageName(packageName),
+			target.Desc()))
+
+	err := util.CreateArchive(
 		target.archiveType,
-		filepath.Join(
-			artifactDir,
-			fmt.Sprintf(
-				"%s-%s",
-				realPackageName(packageName),
-				target.Desc())),
+		archivePath,
 		filepath.Join(
 			artifactDir,
 			target.Desc()))
+
+	return archivePath, err
 }
 
-func createArtifactSubdir(target *TargetSpec, parent string) string {
+func createArtifactSubdir(target TargetSpec, parent string) string {
 	targetDir := path.Join(parent, target.Desc())
 	os.MkdirAll(targetDir, 0777)
 	result, err := filepath.Abs(targetDir)

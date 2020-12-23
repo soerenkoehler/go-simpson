@@ -3,12 +3,13 @@ package github
 // TODO paginated responses
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/soerenkoehler/simpson/util"
 )
 
 // Context of current Github Actions workflow call.
@@ -22,39 +23,36 @@ type Context struct {
 var httpClient *http.Client = &http.Client{}
 
 // NewDefaultContext ...
-func NewDefaultContext() *Context {
+func NewDefaultContext() Context {
 	return NewContext(os.Getenv("GITHUB_CONTEXT"))
 }
 
 // NewContext ...
-func NewContext(jsonContext string) *Context {
-	context := &Context{}
-	json.Unmarshal([]byte(jsonContext), context)
+func NewContext(jsonContext string) Context {
+	context := Context{}
+	json.Unmarshal([]byte(jsonContext), &context)
 	return context
 }
 
 // APICall executes an Github API on the given context, using the provided
 // endpoint and values.
-func (context *Context) APICall(
-	endpoint *Endpoint,
-	requestBody []byte,
+func (context Context) APICall(
+	endpoint Endpoint,
+	content util.BodyReader,
 	values ...interface{}) (string, error) {
 
 	url := fmt.Sprintf(
 		"https://api.github.com/repos/%s/%s",
 		context.Repository,
 		fmt.Sprintf(endpoint.url, values...))
-	fmt.Printf("Request: %s\n%s\n", url, string(requestBody))
 
-	request, err := http.NewRequest(
-		endpoint.method,
-		url,
-		bytes.NewBuffer(requestBody))
+	request, err := http.NewRequest(endpoint.method, url, &content)
 	if err != nil {
 		return "", err
 	}
 
-	request.Header.Add("authorization", fmt.Sprintf("Bearer %s", context.Token))
+	request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
 	response, err := httpClient.Do(request)
 	if err != nil {
 		return "", err

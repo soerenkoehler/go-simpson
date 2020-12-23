@@ -20,7 +20,7 @@ type archiveZip struct {
 	*zip.Writer
 }
 
-func (archive *archiveZip) CreateEntry(file string, info os.FileInfo) (io.Writer, error) {
+func (archive archiveZip) CreateEntry(file string, info os.FileInfo) (io.Writer, error) {
 	return archive.Create(file)
 }
 
@@ -29,7 +29,7 @@ type archiveTgz struct {
 	gzWriter *gzip.Writer
 }
 
-func (archive *archiveTgz) CreateEntry(file string, info os.FileInfo) (io.Writer, error) {
+func (archive archiveTgz) CreateEntry(file string, info os.FileInfo) (io.Writer, error) {
 	header, err := tar.FileInfoHeader(info, info.Name())
 	if err == nil {
 		return archive.Writer, archive.WriteHeader(header)
@@ -37,7 +37,7 @@ func (archive *archiveTgz) CreateEntry(file string, info os.FileInfo) (io.Writer
 	return nil, err
 }
 
-func (archive *archiveTgz) Close() error {
+func (archive archiveTgz) Close() error {
 	if err := archive.Writer.Close(); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ type ArchiveType struct {
 
 // supported archive types
 var (
-	ZIP = &ArchiveType{
+	ZIP = ArchiveType{
 		func(w io.Writer) archiveBase {
 			zipWriter := zip.NewWriter(w)
 			zipWriter.RegisterCompressor(
@@ -63,7 +63,7 @@ var (
 			return &archiveZip{zipWriter}
 		},
 		"zip"}
-	TGZ = &ArchiveType{
+	TGZ = ArchiveType{
 		func(w io.Writer) archiveBase {
 			if gzWriter, err := gzip.NewWriterLevel(w, gzip.BestCompression); err == nil {
 				return &archiveTgz{
@@ -77,7 +77,7 @@ var (
 
 // CreateArchive ... TODO
 func CreateArchive(
-	archiveType *ArchiveType,
+	archiveType ArchiveType,
 	archivePath string,
 	contentPath string) error {
 
