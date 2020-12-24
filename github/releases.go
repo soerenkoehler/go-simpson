@@ -2,6 +2,7 @@ package github
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/soerenkoehler/simpson/util"
 )
@@ -55,5 +56,6 @@ func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
 	result := ReleaseInfo{}
 	result.context = context
 	json.Unmarshal([]byte(jsonData), &result)
+	fmt.Printf("ReleaseInfo: %v\n", result) // TODO DEBUG
 	return result
 }
