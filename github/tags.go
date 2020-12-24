@@ -22,24 +22,24 @@ func (context Context) hasTag(tag string) bool {
 	return err == nil
 }
 
-func (context Context) updateTag(tag string, sha string) {
-	result, err := context.APICall(
+func (context Context) updateTag(tag string, sha string) error {
+	_, err := context.APICall(
 		APIUpdateRef,
 		util.BodyFromMap(map[string]string{
 			"sha": sha,
 		}),
 		tagPath(tag))
-	fmt.Printf("Update tag %s\nResult: %s\nError: %v\n", tag, result, err)
+	return err
 }
 
-func (context Context) createTag(tag string, sha string) {
-	result, err := context.APICall(
+func (context Context) createTag(tag string, sha string) error {
+	_, err := context.APICall(
 		APICreateRef,
 		util.BodyFromMap(map[string]string{
 			"ref": fullTagPath(tag),
 			"sha": sha,
 		}))
-	fmt.Printf("Create tag %s\nResult: %s\nError: %v\n", tag, result, err)
+	return err
 }
 
 func fullTagPath(tag string) string {

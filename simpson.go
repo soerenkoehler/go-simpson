@@ -13,7 +13,7 @@ import (
 func main() {
 	opts, err := docopt.ParseArgs(_Usage, nil, _Version)
 	if err == nil {
-		fmt.Println(opts) // TODO debug or info?
+		fmt.Printf("Arguments:\n%v\n", opts)
 		artifacts := buildArtifacts(&opts)
 		if optRelease, _ := opts.Bool("--release"); optRelease {
 			releaseArtifacts(&opts, artifacts)
@@ -26,30 +26,48 @@ func main() {
 
 func buildArtifacts(opts *docopt.Opts) []string {
 	var targets []build.TargetSpec
+
 	if optAllTargets, _ := opts.Bool("--all-targets"); optAllTargets {
 		targets = build.AllTargets
 	} else if optTargets, err := opts.String("--targets"); err == nil {
 		targets = build.GetTargets(optTargets)
 	}
 	optPackage, _ := opts.String("PACKAGE")
-	return build.TestAndBuild(optPackage, targets)
+
+	artifacts, errs := build.TestAndBuild(optPackage, targets)
+	if len(errs) > 0 {
+		fmt.Fprintf(os.Stderr, "Errors:\n%v\n", errs)
+	}
+
+	return artifacts
 }
 
 func releaseArtifacts(opts *docopt.Opts, artifacts []string) {
 	githubContext := github.NewDefaultContext()
-	fmt.Println(githubContext)
+
 	if len(githubContext.Token) > 0 {
+
 		if isVersionTag(githubContext.Ref) {
-			fmt.Println("TODO: Not implemented!")
+			fmt.Fprintln(os.Stderr, "TODO: Not implemented!")
 		} else if strings.HasPrefix(githubContext.Ref, "refs/heads/") {
 			githubContext.SetTag("latest", githubContext.Sha)
-			release := githubContext.GetRelease("latest")
-			for _, artifact := range artifacts {
-				release.UploadArtifact(artifact)
+			if release, err := githubContext.GetRelease("latest"); err == nil {
+				uploadArtifacts(release, artifacts)
+			} else {
+				fmt.Fprintf(os.Stderr, "Skipping release: Release 'latest' not found.\n")
 			}
 		}
+
 	} else {
-		fmt.Fprintln(os.Stderr, "Error: No Github API token found.")
+		fmt.Fprintf(os.Stderr, "Skipping release: No Github API token found.\n")
+	}
+}
+
+func uploadArtifacts(release github.ReleaseInfo, artifacts []string) {
+	for _, artifact := range artifacts {
+		if err := release.UploadArtifact(artifact); err != nil {
+			fmt.Fprintf(os.Stderr, "Error uploading release asset %s: %v\n", artifact, err)
+		}
 	}
 }
 

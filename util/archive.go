@@ -125,8 +125,6 @@ func walkTree(root string) map[string]os.FileInfo {
 				relPath, _ := filepath.Rel(root, path)
 				result[relPath] = info
 			}
-		} else {
-			fmt.Printf("Walk() error: %v\n", err)
 		}
 		return nil
 	})

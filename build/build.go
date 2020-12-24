@@ -15,11 +15,15 @@ const artifactDir = "artifacts"
 var buildDate = time.Now().UTC().Format("2006.01.02-15:04:05")
 
 // TestAndBuild performs the standard build process.
-func TestAndBuild(packageName string, targets []TargetSpec) []string {
+func TestAndBuild(
+	packageName string,
+	targets []TargetSpec) ([]string, []error) {
+
 	if Test() == nil {
 		return Build(packageName, targets)
 	}
-	return []string{}
+
+	return []string{}, []error{}
 }
 
 // Test runs 'go test' for all packages in the current module.
@@ -30,28 +34,27 @@ func Test() error {
 // Build runs 'go build' for the named package and supplied target definitions.
 // The resulting binary is stored in target specific subdirectories of the
 // directory 'artifacts'.
-func Build(packageName string, targets []TargetSpec) []string {
+func Build(
+	packageName string,
+	targets []TargetSpec) ([]string, []error) {
 
 	os.RemoveAll(artifactDir)
 
-	artifacts := []string{}
+	artifactList := []string{}
+	errorList := []error{}
 
 	for _, target := range targets {
 		if path, err := buildArtifact(
 			packageName,
 			target,
 			artifactDir); err == nil {
-			artifacts = append(artifacts, path)
+			artifactList = append(artifactList, path)
 		} else {
-			fmt.Printf(
-				"Package: %s\nArtifactDir: %s\nError: %v\n",
-				packageName,
-				artifactDir,
-				err)
+			errorList = append(errorList, err)
 		}
 	}
 
-	return artifacts
+	return artifactList, errorList
 }
 
 func buildArtifact(

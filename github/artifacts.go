@@ -1,10 +1,17 @@
 package github
 
 import (
-	"fmt"
+	"path/filepath"
+
+	"github.com/soerenkoehler/simpson/util"
 )
 
 // UploadArtifact ... TODO
-func (release ReleaseInfo) UploadArtifact(name string) {
-	fmt.Printf("artifacts/%s => %s\n", name, release.AssetsURL)
+func (release ReleaseInfo) UploadArtifact(path string) error {
+	_, err := release.context.APICall(
+		APIUploadReleaseAsset,
+		util.BodyFromFile(path),
+		release.ID,
+		filepath.Base(path))
+	return err
 }

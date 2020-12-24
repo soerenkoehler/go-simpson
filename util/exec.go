@@ -10,7 +10,7 @@ import (
 
 // Execute ... TODO
 func Execute(cmdline []string, env ...string) error {
-	fmt.Println(cmdline, env)
+	fmt.Printf("Executing %v\n", cmdline)
 
 	proc := exec.Command(cmdline[0], cmdline[1:]...)
 	proc.Env = append(os.Environ(), env...)
@@ -27,7 +27,7 @@ func Execute(cmdline []string, env ...string) error {
 	err := proc.Run()
 
 	if err != nil {
-		fmt.Printf("Error: %s\n", err)
+		fmt.Printf("Execution returned: %v\n", err)
 	}
 
 	return err
