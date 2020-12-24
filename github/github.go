@@ -60,7 +60,7 @@ func (context Context) APICall(
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
-	fmt.Printf("Error: %v\nResponse: %v\n", err, body) // TODO DEBUG
+	fmt.Printf("Error: %v\nResponse: %v\n", err, string(body)) // TODO DEBUG
 	if err != nil {
 		return "", err
 	}
