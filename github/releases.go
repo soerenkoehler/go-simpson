@@ -10,7 +10,7 @@ import (
 // ReleaseInfo ... TODO
 type ReleaseInfo struct {
 	context   Context
-	ID        string `json:"id"`
+	ID        int64  `json:"id"`
 	AssetsURL string `json:"assets_url"`
 }
 
