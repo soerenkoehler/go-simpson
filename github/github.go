@@ -45,7 +45,7 @@ func (context Context) APICall(
 		"https://api.github.com/repos/%s/%s",
 		context.Repository,
 		fmt.Sprintf(endpoint.url, values...))
-	fmt.Printf("API-Call: %v %v\n", endpoint.method, url)
+	fmt.Printf("API-Call: %v %v\n", endpoint.method, url) // TODO DEBUG
 
 	request, err := http.NewRequest(endpoint.method, url, &content)
 	if err != nil {
@@ -60,6 +60,7 @@ func (context Context) APICall(
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
+	fmt.Printf("Error: %v\nResponse: %v\n", err, body) // TODO DEBUG
 	if err != nil {
 		return "", err
 	}
