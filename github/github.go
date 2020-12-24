@@ -45,7 +45,7 @@ func (context Context) APICall(
 		"https://api.github.com/repos/%s/%s",
 		context.Repository,
 		fmt.Sprintf(endpoint.url, values...))
-	fmt.Printf("API-Call: %v\n", url)
+	fmt.Printf("API-Call: %v %v\n", endpoint.method, url)
 
 	request, err := http.NewRequest(endpoint.method, url, &content)
 	if err != nil {
