@@ -5,7 +5,7 @@ var _Usage = "BaRT (Build and Release Tool) " + _Version + `
 
 Usage:
     simpson PACKAGE (--all-targets | --targets TARGETS) [--release]
-    simpson--init
+    simpson --init
     simpson (-h | --help | --version)
 
 Options:
