@@ -16,7 +16,7 @@ var (
 
 	APIGetReleaseByTag = Endpoint{http.MethodGet, "releases/tags/%s"}
 	APICreateRelease   = Endpoint{http.MethodPost, "releases"}
-	APIUpdateRelease   = Endpoint{http.MethodPatch, "releases/%s"}
+	APIDeleteRelease   = Endpoint{http.MethodDelete, "releases/%s"}
 
 	APIUploadReleaseAsset = Endpoint{http.MethodPost, "releases/%s/assets?name=%s"}
 )

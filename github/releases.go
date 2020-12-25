@@ -37,13 +37,13 @@ func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
 }
 
 func (release ReleaseInfo) updateRelease(tag string) (ReleaseInfo, error) {
-	response, err := release.APICall(
-		APIUpdateRelease,
-		util.BodyFromMap(map[string]string{
-			"tag_name": tag,
-		}),
-		release.ID)
-	return release.jsonToReleaseInfo(response), err
+	if _, err := release.APICall(
+		APIDeleteRelease,
+		util.BodyReader{},
+		release.ID); err != nil {
+		return ReleaseInfo{}, err
+	}
+	return release.createRelease(tag)
 }
 
 func (context Context) createRelease(tag string) (ReleaseInfo, error) {
