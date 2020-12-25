@@ -9,9 +9,9 @@ import (
 
 // ReleaseInfo ... TODO
 type ReleaseInfo struct {
-	context   Context
-	ID        int64  `json:"id"`
-	AssetsURL string `json:"assets_url"`
+	Context
+	ID        string
+	AssetsURL string
 }
 
 // GetRelease ... TODO
@@ -34,13 +34,13 @@ func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
 }
 
 func (release ReleaseInfo) updateRelease(tag string) (ReleaseInfo, error) {
-	response, err := release.context.APICall(
+	response, err := release.APICall(
 		APIUpdateRelease,
 		util.BodyFromMap(map[string]string{
 			"tag_name": tag,
 		}),
 		release.ID)
-	return release.context.jsonToReleaseInfo(response), err
+	return release.jsonToReleaseInfo(response), err
 }
 
 func (context Context) createRelease(tag string) (ReleaseInfo, error) {
@@ -53,9 +53,13 @@ func (context Context) createRelease(tag string) (ReleaseInfo, error) {
 }
 
 func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
-	result := ReleaseInfo{}
-	result.context = context
+	// result := ReleaseInfo{}
+	// result.context = context
+	var result map[string]interface{}
 	json.Unmarshal([]byte(jsonData), &result)
 	fmt.Printf("ReleaseInfo: %v\n", result) // TODO DEBUG
-	return result
+	return ReleaseInfo{
+		Context:   context,
+		ID:        fmt.Sprint(result["id"]),
+		AssetsURL: result["asset_url"].(string)}
 }

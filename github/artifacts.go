@@ -8,7 +8,7 @@ import (
 
 // UploadArtifact ... TODO
 func (release ReleaseInfo) UploadArtifact(path string) error {
-	_, err := release.context.APICall(
+	_, err := release.APICall(
 		APIUploadReleaseAsset,
 		util.BodyFromFile(path),
 		release.ID,
