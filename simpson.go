@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/docopt/docopt-go"
@@ -19,16 +20,43 @@ func main() {
 		util.ReplaceVariable(resource.Usage, "VERSION", _Version),
 		nil,
 		_Version)
+
 	if err == nil {
 		fmt.Printf("Arguments:\n%v\n", opts)
-		artifacts := buildArtifacts(&opts)
-		if optRelease, _ := opts.Bool("--release"); optRelease {
-			releaseArtifacts(&opts, artifacts)
+		if optInit, _ := opts.Bool("--init"); optInit {
+			err = initializeWorkflowFile()
+		} else {
+			artifacts := buildArtifacts(&opts)
+			if optRelease, _ := opts.Bool("--release"); optRelease {
+				createRelease(&opts, artifacts)
+			}
 		}
-	} else {
+	}
+
+	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(127)
 	}
+}
+
+func initializeWorkflowFile() error {
+	workflowFile := ".github/workflows/simpson-bart.yml"
+
+	err := os.MkdirAll(filepath.Dir(workflowFile), 0777)
+	if err != nil {
+		return err
+	}
+
+	output, err := os.Create(workflowFile)
+	if err != nil {
+		return err
+	}
+
+	defer output.Close()
+
+	output.Write([]byte(resource.WorkflowFile))
+
+	return nil
 }
 
 func buildArtifacts(opts *docopt.Opts) []string {
@@ -49,7 +77,7 @@ func buildArtifacts(opts *docopt.Opts) []string {
 	return artifacts
 }
 
-func releaseArtifacts(opts *docopt.Opts, artifacts []string) {
+func createRelease(opts *docopt.Opts, artifacts []string) {
 	githubContext := github.NewDefaultContext()
 
 	if len(githubContext.Token) > 0 {
