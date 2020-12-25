@@ -8,10 +8,17 @@ import (
 	"github.com/docopt/docopt-go"
 	"github.com/soerenkoehler/simpson/build"
 	"github.com/soerenkoehler/simpson/github"
+	"github.com/soerenkoehler/simpson/resource"
+	"github.com/soerenkoehler/simpson/util"
 )
 
+var _Version = "DEV"
+
 func main() {
-	opts, err := docopt.ParseArgs(_Usage, nil, _Version)
+	opts, err := docopt.ParseArgs(
+		util.ReplaceVariable(resource.Usage, "VERSION", _Version),
+		nil,
+		_Version)
 	if err == nil {
 		fmt.Printf("Arguments:\n%v\n", opts)
 		artifacts := buildArtifacts(&opts)
