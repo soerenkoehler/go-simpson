@@ -66,13 +66,18 @@ func (context Context) APICallURL(
 
 	request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
+
+	fmt.Printf("Headers: %v\n", request.Header) // TODO DEBUG
+
 	response, err := httpClient.Do(request)
 	if err != nil {
 		return "", err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
+
 	fmt.Printf("Error: %v\nResponse: %v\n", err, string(body)) // TODO DEBUG
+
 	if err != nil {
 		return "", err
 	}
