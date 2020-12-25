@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 )
@@ -31,6 +32,9 @@ func BodyFromMap(data map[string]string) BodyReader {
 // BodyFromFile ... TODO
 func BodyFromFile(path string) BodyReader {
 	info, err := os.Stat(path)
+
+	fmt.Printf("Error: %v\nInfo: %v\n", err, info) // TODO DEBUG
+
 	if err != nil {
 		return BodyReader{}
 	}
