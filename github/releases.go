@@ -53,13 +53,10 @@ func (context Context) createRelease(tag string) (ReleaseInfo, error) {
 }
 
 func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
-	// result := ReleaseInfo{}
-	// result.context = context
 	var result map[string]interface{}
 	json.Unmarshal([]byte(jsonData), &result)
-	fmt.Printf("ReleaseInfo: %v\n", result) // TODO DEBUG
 	return ReleaseInfo{
 		Context:   context,
 		ID:        fmt.Sprint(result["id"]),
-		AssetsURL: result["asset_url"].(string)}
+		AssetsURL: result["assets_url"].(string)}
 }
