@@ -57,6 +57,6 @@ func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
 	json.Unmarshal([]byte(jsonData), &result)
 	return ReleaseInfo{
 		Context:   context,
-		ID:        fmt.Sprint(result["id"]),
+		ID:        fmt.Sprintf("%.f", result["id"]),
 		AssetsURL: result["assets_url"].(string)}
 }
