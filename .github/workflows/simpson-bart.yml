@@ -28,3 +28,4 @@ jobs:
         run: |
           go get github.com/soerenkoehler/simpson@dev
           go run github.com/soerenkoehler/simpson . --all-targets --release
+          
