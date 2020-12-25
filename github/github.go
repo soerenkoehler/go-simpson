@@ -34,20 +34,32 @@ func NewContext(jsonContext string) Context {
 	return context
 }
 
-// APICall executes an Github API on the given context, using the provided
-// endpoint and values.
+// APICall executes an Github API call on the given context, using the provided
+// endpoint, content and URL-values.
 func (context Context) APICall(
 	endpoint Endpoint,
 	content util.BodyReader,
 	values ...interface{}) (string, error) {
 
-	url := fmt.Sprintf(
-		"https://api.github.com/repos/%s/%s",
-		context.Repository,
-		fmt.Sprintf(endpoint.url, values...))
-	fmt.Printf("API-Call: %v %v\n", endpoint.method, url) // TODO DEBUG
+	return context.APICallURL(
+		endpoint.method,
+		fmt.Sprintf(
+			"https://api.github.com/repos/%s/%s",
+			context.Repository,
+			fmt.Sprintf(endpoint.url, values...)),
+		content)
+}
 
-	request, err := http.NewRequest(endpoint.method, url, &content)
+// APICallURL executes an API call on the given context using the provided
+// method, url and content.
+func (context Context) APICallURL(
+	method string,
+	url string,
+	content util.BodyReader) (string, error) {
+
+	fmt.Printf("API-Call: %v %v\n", method, url) // TODO DEBUG
+
+	request, err := http.NewRequest(method, url, &content)
 	if err != nil {
 		return "", err
 	}

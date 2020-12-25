@@ -3,15 +3,18 @@ package github
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"github.com/soerenkoehler/simpson/util"
 )
+
+var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 
 // ReleaseInfo ... TODO
 type ReleaseInfo struct {
 	Context
 	ID        string
-	AssetsURL string
+	UploadURL string
 }
 
 // GetRelease ... TODO
@@ -56,7 +59,8 @@ func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
 	var result map[string]interface{}
 	json.Unmarshal([]byte(jsonData), &result)
 	return ReleaseInfo{
-		Context:   context,
-		ID:        fmt.Sprintf("%.f", result["id"]),
-		AssetsURL: result["assets_url"].(string)}
+		Context: context,
+		ID:      fmt.Sprintf("%.f", result["id"]),
+		UploadURL: uploadURLNormalizer.ReplaceAllString(
+			result["upload_url"].(string), "")}
 }

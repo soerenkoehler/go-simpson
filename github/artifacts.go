@@ -1,6 +1,8 @@
 package github
 
 import (
+	"fmt"
+	"net/http"
 	"path/filepath"
 
 	"github.com/soerenkoehler/simpson/util"
@@ -8,10 +10,9 @@ import (
 
 // UploadArtifact ... TODO
 func (release ReleaseInfo) UploadArtifact(path string) error {
-	_, err := release.APICall(
-		APIUploadReleaseAsset,
-		util.BodyFromFile(path),
-		release.ID,
-		filepath.Base(path))
+	_, err := release.APICallURL(
+		http.MethodPost,
+		fmt.Sprintf("%s?name=%s", release.UploadURL, filepath.Base(path)),
+		util.BodyFromFile(path))
 	return err
 }
