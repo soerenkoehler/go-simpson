@@ -57,8 +57,6 @@ func (context Context) APICallURL(
 	url string,
 	content util.BodyReader) (string, error) {
 
-	fmt.Printf("API-Call: %v %v\n", method, url) // TODO DEBUG
-
 	request, err := http.NewRequest(method, url, &content)
 	if err != nil {
 		return "", err
@@ -69,16 +67,12 @@ func (context Context) APICallURL(
 	request.Header.Set("Content-Type", "application/octet-stream")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
 
-	fmt.Printf("Request: %+v\n", request) // TODO DEBUG
-
 	response, err := httpClient.Do(request)
 	if err != nil {
 		return "", err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
-
-	fmt.Printf("Error: %v\nResponse: %v\n", err, string(body)) // TODO DEBUG
 
 	if err != nil {
 		return "", err
