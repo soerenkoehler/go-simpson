@@ -64,7 +64,7 @@ func (context Context) APICallURL(
 		return "", err
 	}
 
-	request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
+	// request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
 
 	fmt.Printf("Headers: %v\n", request.Header) // TODO DEBUG
