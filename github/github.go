@@ -64,8 +64,8 @@ func (context Context) APICallURL(
 		return "", err
 	}
 
-	// request.ContentLength = content.Length()
-	request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
+	request.ContentLength = content.Length()
+	// request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
 	request.Header.Set("Content-Type", "application/octet-stream")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
 
