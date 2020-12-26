@@ -78,14 +78,13 @@ var (
 // CreateArchive ... TODO
 func CreateArchive(
 	archiveType ArchiveType,
-	archivePath string,
-	contentPath string) error {
+	contentPath string) (string, error) {
 
-	archiveFile, err := os.Create(
-		fmt.Sprintf(
-			"%s.%s",
-			archivePath,
-			archiveType.Extension))
+	archiveFilePath := fmt.Sprintf(
+		"%s.%s",
+		contentPath,
+		archiveType.Extension)
+	archiveFile, err := os.Create(archiveFilePath)
 
 	if err == nil {
 
@@ -100,7 +99,7 @@ func CreateArchive(
 		archive.Close()
 	}
 
-	return err
+	return archiveFilePath, err
 }
 
 func addFiles(archive archiveBase, contentPath string) error {

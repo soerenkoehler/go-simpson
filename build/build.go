@@ -78,21 +78,11 @@ func buildArtifact(
 		return "", err
 	}
 
-	archivePath := filepath.Join(
-		artifactDir,
-		fmt.Sprintf(
-			"%s-%s",
-			realPackageName(packageName),
-			target.Desc()))
-
-	err := util.CreateArchive(
+	return util.CreateArchive(
 		target.archiveType,
-		archivePath,
 		filepath.Join(
 			artifactDir,
 			target.Desc()))
-
-	return archivePath, err
 }
 
 func createArtifactSubdir(target TargetSpec, parent string) string {
