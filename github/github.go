@@ -67,7 +67,7 @@ func (context Context) APICallURL(
 	// request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
 
-	fmt.Printf("Request: %v\n", request) // TODO DEBUG
+	fmt.Printf("Request: %+v\n", request) // TODO DEBUG
 
 	response, err := httpClient.Do(request)
 	if err != nil {
