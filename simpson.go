@@ -89,7 +89,9 @@ func createRelease(opts *docopt.Opts, artifacts []string) {
 			if release, err := githubContext.GetRelease("latest"); err == nil {
 				uploadArtifacts(release, artifacts)
 			} else {
-				fmt.Fprintf(os.Stderr, "Skipping release: Release 'latest' not found.\n")
+				fmt.Fprintf(
+					os.Stderr,
+					"Skipping release: Release 'latest' not found.\n")
 			}
 		}
 
@@ -101,7 +103,11 @@ func createRelease(opts *docopt.Opts, artifacts []string) {
 func uploadArtifacts(release github.ReleaseInfo, artifacts []string) {
 	for _, artifact := range artifacts {
 		if err := release.UploadArtifact(artifact); err != nil {
-			fmt.Fprintf(os.Stderr, "Error uploading release asset %s: %v\n", artifact, err)
+			fmt.Fprintf(
+				os.Stderr,
+				"Error uploading release asset %s: %v\n",
+				artifact,
+				err)
 		}
 	}
 }
