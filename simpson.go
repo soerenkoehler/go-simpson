@@ -87,6 +87,12 @@ func createRelease(opts *docopt.Opts, artifacts []string) {
 		} else if strings.HasPrefix(githubContext.Ref, "refs/heads/") {
 			githubContext.SetTag("latest", githubContext.Sha)
 			if release, err := githubContext.GetRelease("latest"); err == nil {
+				artifacts = renameArtifacts(
+					fmt.Sprintf(
+						"%s-%s",
+						build.BuildDateShort,
+						githubContext.Sha[0:7]),
+					artifacts)
 				uploadArtifacts(release, artifacts)
 			} else {
 				fmt.Fprintf(
@@ -98,6 +104,23 @@ func createRelease(opts *docopt.Opts, artifacts []string) {
 	} else {
 		fmt.Fprintf(os.Stderr, "Skipping release: No Github API token found.\n")
 	}
+}
+
+// TODO include package name and version suffix in artifact path
+func renameArtifacts(
+	prefix string,
+	suffix string,
+	artifacts []string) []string {
+
+	var newNames []string
+
+	for _, artifact := range artifacts {
+		newName := fmt.Sprintf("%s-%s-%s", artifact, suffix)
+		os.Rename(artifact, newName)
+		newNames = append(newNames, newName)
+	}
+
+	return newNames
 }
 
 func uploadArtifacts(release github.ReleaseInfo, artifacts []string) {
