@@ -72,8 +72,7 @@ func buildArtifact(
 
 	// TODO include git ref info
 	targetLabels := append(versionLabels, target.Desc())
-	artifactDir := createArtifactSubdir(
-		strings.Join(append([]string{packageName}, targetLabels...), "-"))
+	artifactDir := createArtifactSubdir(packageName, targetLabels)
 
 	if err := util.Execute(
 		[]string{
@@ -93,19 +92,25 @@ func buildArtifact(
 	return util.CreateArchive(target.archiveType, artifactDir)
 }
 
-func createArtifactSubdir(artifactName string) string {
-	targetDir := path.Join(artifactsParentDir, artifactName)
+func createArtifactSubdir(
+	packageName string,
+	targetLabels []string) string {
+
+	realPackageName := packageName
+	if packagePath, err := filepath.Abs(packageName); err == nil {
+		realPackageName = filepath.Base(packagePath)
+	}
+
+	targetDir := path.Join(
+		artifactsParentDir,
+		strings.Join(append([]string{realPackageName}, targetLabels...), "-"))
+
 	os.MkdirAll(targetDir, 0777)
+
 	result, err := filepath.Abs(targetDir)
 	if err != nil {
 		panic(err)
 	}
-	return result
-}
 
-func realPackageName(packageName string) string {
-	if packagePath, err := filepath.Abs(packageName); err == nil {
-		return filepath.Base(packagePath)
-	}
-	return packageName
+	return result
 }
