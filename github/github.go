@@ -3,13 +3,20 @@ package github
 // TODO paginated responses
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
+
+	"github.com/soerenkoehler/simpson/build"
+	"github.com/soerenkoehler/simpson/util"
 )
+
+var pushVersionExtractor = regexp.MustCompile(`^v\d+\.\d+\.\d+`)
+var httpClient *http.Client = &http.Client{}
 
 // Context of current Github Actions workflow call.
 type Context struct {
@@ -19,48 +26,76 @@ type Context struct {
 	Sha        string
 }
 
-var httpClient *http.Client = &http.Client{}
-
-// NewDefaultContext ...
-func NewDefaultContext() *Context {
+// NewDefaultContext ... TODO
+func NewDefaultContext() Context {
 	return NewContext(os.Getenv("GITHUB_CONTEXT"))
 }
 
-// NewContext ...
-func NewContext(jsonContext string) *Context {
-	context := &Context{}
-	json.Unmarshal([]byte(jsonContext), context)
+// NewContext ... TODO
+func NewContext(jsonContext string) Context {
+	context := Context{}
+	json.Unmarshal([]byte(jsonContext), &context)
 	return context
 }
 
-// APICall executes an Github API on the given context, using the provided
-// endpoint and values.
-func (context *Context) APICall(
-	endpoint *Endpoint,
-	requestBody []byte,
+// GetVersionLabels ... TODO
+func (context Context) GetVersionLabels() []string {
+	if pushVersion, ok := context.getPushVersion(); ok {
+		return []string{pushVersion}
+	} else if context.isPushHead() {
+		return []string{build.TokenBuildDate, context.Sha[0:8]}
+	}
+	return []string{build.TokenBuildDate}
+}
+
+func (context Context) getPushVersion() (string, bool) {
+	matches := pushVersionExtractor.FindStringSubmatch(context.Ref)
+	if len(matches) == 2 {
+		return matches[1], true
+	}
+	return "", false
+}
+
+func (context Context) isPushHead() bool {
+	return strings.HasPrefix(context.Ref, "refs/heads/")
+}
+
+func (context Context) apiCall(
+	endpoint apiEndpoint,
+	content util.BodyReader,
 	values ...interface{}) (string, error) {
 
-	url := fmt.Sprintf(
-		"https://api.github.com/repos/%s/%s",
-		context.Repository,
-		fmt.Sprintf(endpoint.url, values...))
-	fmt.Printf("Request: %s\n%s\n", url, string(requestBody))
-
-	request, err := http.NewRequest(
+	return context.apiCallURL(
 		endpoint.method,
-		url,
-		bytes.NewBuffer(requestBody))
+		fmt.Sprintf(
+			"https://api.github.com/repos/%s/%s",
+			context.Repository,
+			fmt.Sprintf(endpoint.url, values...)),
+		content)
+}
+
+func (context Context) apiCallURL(
+	method string,
+	url string,
+	content util.BodyReader) (string, error) {
+
+	request, err := http.NewRequest(method, url, &content)
 	if err != nil {
 		return "", err
 	}
 
-	request.Header.Add("authorization", fmt.Sprintf("Bearer %s", context.Token))
+	request.ContentLength = content.Length()
+	// request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
+	request.Header.Set("Content-Type", "application/octet-stream")
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
+
 	response, err := httpClient.Do(request)
 	if err != nil {
 		return "", err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
+
 	if err != nil {
 		return "", err
 	}

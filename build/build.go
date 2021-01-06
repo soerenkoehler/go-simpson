@@ -5,18 +5,33 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/soerenkoehler/simpson/util"
 )
 
-var buildDate = time.Now().UTC().Format("2006.01.02-15:04:05")
+const artifactsParentDir = "artifacts"
+
+// Build dates in several formats.
+var (
+	buildDate      = time.Now().UTC()
+	buildDateLong  = buildDate.Format("2006.01.02-15:04:05")
+	buildDateShort = buildDate.Format("20060102-150405")
+	TokenBuildDate = "$BUILDDATE"
+)
 
 // TestAndBuild performs the standard build process.
-func TestAndBuild(packageName string, targets []*TargetSpec) {
+func TestAndBuild(
+	packageName string,
+	versionLabels []string,
+	targets []TargetSpec) ([]string, []error) {
+
 	if Test() == nil {
-		Build(packageName, targets)
+		return Build(packageName, versionLabels, targets)
 	}
+
+	return []string{}, []error{}
 }
 
 // Test runs 'go test' for all packages in the current module.
@@ -27,69 +42,99 @@ func Test() error {
 // Build runs 'go build' for the named package and supplied target definitions.
 // The resulting binary is stored in target specific subdirectories of the
 // directory 'artifacts'.
-func Build(packageName string, targets []*TargetSpec) {
-	artifactDir := "artifacts"
+func Build(
+	packageName string,
+	versionLabels []string,
+	targets []TargetSpec) ([]string, []error) {
 
-	os.RemoveAll(artifactDir)
+	os.RemoveAll(artifactsParentDir)
+
+	artifactList := []string{}
+	errorList := []error{}
 
 	for _, target := range targets {
-		if err := buildArtifact(packageName, target, artifactDir); err != nil {
-			fmt.Printf(
-				"Package: %s\nArtifactDir: %s\nError: %v\n",
-				packageName,
-				artifactDir,
-				err)
+		if path, err := buildArtifact(
+			packageName,
+			target,
+			versionLabels); err == nil {
+			artifactList = append(artifactList, path)
+		} else {
+			errorList = append(errorList, err)
 		}
 	}
+
+	return artifactList, errorList
 }
 
 func buildArtifact(
 	packageName string,
-	target *TargetSpec,
-	artifactDir string) error {
+	target TargetSpec,
+	versionLabels []string) (string, error) {
 
 	// TODO include git ref info
-	version := fmt.Sprintf("%s %s", buildDate, target.Desc())
+	targetLabels := append(versionLabels, target.Desc())
+	artifactDir := createArtifactSubdir(packageName, targetLabels)
 
 	if err := util.Execute(
 		[]string{
 			"go",
 			"build",
 			"-a",
-			"-ldflags", fmt.Sprintf("-X \"main._Version=%s\"", version),
+			"-ldflags", fmt.Sprintf(
+				`-X "main._Version=%s"`,
+				formatTargetLabels(targetLabels, buildDateLong, " ")),
 			"-o",
-			createArtifactSubdir(target, artifactDir),
+			artifactDir,
 			packageName},
 		target.Env()...); err != nil {
-		return err
+		return "", err
 	}
 
-	return util.CreateArchive(
-		target.archiveType,
-		filepath.Join(
-			artifactDir,
-			fmt.Sprintf(
-				"%s-%s",
-				realPackageName(packageName),
-				target.Desc())),
-		filepath.Join(
-			artifactDir,
-			target.Desc()))
+	return util.CreateArchive(target.archiveType, artifactDir)
 }
 
-func createArtifactSubdir(target *TargetSpec, parent string) string {
-	targetDir := path.Join(parent, target.Desc())
-	os.MkdirAll(targetDir, 0777)
-	result, err := filepath.Abs(targetDir)
+func createArtifactSubdir(
+	packageName string,
+	targetLabels []string) string {
+
+	realPackageName := packageName
+	if packagePath, err := filepath.Abs(packageName); err == nil {
+		realPackageName = filepath.Base(packagePath)
+	}
+
+	targetDir := formatTargetLabels(
+		append([]string{realPackageName}, targetLabels...),
+		buildDateShort,
+		"-")
+
+	targetPath := path.Join(artifactsParentDir, targetDir)
+
+	os.MkdirAll(targetPath, 0777)
+
+	result, err := filepath.Abs(targetPath)
 	if err != nil {
 		panic(err)
 	}
+
 	return result
 }
 
-func realPackageName(packageName string) string {
-	if packagePath, err := filepath.Abs(packageName); err == nil {
-		return filepath.Base(packagePath)
+func formatTargetLabels(
+	targetLabels []string,
+	date string,
+	separator string) string {
+
+	result := []string{}
+	for _, label := range targetLabels {
+		result = append(result, replaceBuildDate(label, date))
 	}
-	return packageName
+
+	return strings.Join(result, separator)
+}
+
+func replaceBuildDate(label string, date string) string {
+	if label == TokenBuildDate {
+		return date
+	}
+	return label
 }

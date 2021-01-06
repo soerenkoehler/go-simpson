@@ -2,59 +2,103 @@ package github
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
+	"path/filepath"
+	"regexp"
+
+	"github.com/soerenkoehler/simpson/util"
 )
+
+var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 
 // ReleaseInfo ... TODO
 type ReleaseInfo struct {
-	context   *Context
-	ID        string `json:"id"`
-	AssetsURL string `json:"assets_url"`
+	Context
+	ID        string
+	UploadURL string
+}
+
+// CreateRelease ... TODO
+func (context Context) CreateRelease(artifacts []string) []error {
+	if len(context.Token) > 0 {
+
+		if _, ok := context.getPushVersion(); ok {
+
+			return []error{errors.New("TODO: Not implemented")}
+
+		} else if context.isPushHead() {
+
+			context.setTag("latest", context.Sha)
+			if release, err := context.getRelease("latest"); err == nil {
+				var errs []error
+				for _, artifact := range artifacts {
+					if err := release.uploadArtifact(artifact); err != nil {
+						errs = append(errs, err)
+					}
+				}
+				return errs
+			}
+			return []error{errors.New("Release 'latest' not found")}
+		}
+		return []error{errors.New("Invalid Github Context")}
+	}
+	return []error{errors.New("Github API token not found")}
 }
 
 // GetRelease ... TODO
-func (context *Context) GetRelease(tag string) *ReleaseInfo {
+func (context Context) getRelease(tag string) (ReleaseInfo, error) {
 	release, err := context.getReleaseByTag(tag)
 	if err == nil {
 		release, err = release.updateRelease(tag)
 	} else {
 		release, err = context.createRelease(tag)
 	}
-	if err != nil {
-		fmt.Println(err)
-	}
-	return release
+	return release, err
 }
 
-func (context *Context) getReleaseByTag(tag string) (*ReleaseInfo, error) {
-	response, err := context.APICall(APIGetReleaseByTag, nil, tag)
+func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
+	response, err := context.apiCall(apiGetReleaseByTag, util.BodyReader{}, tag)
 	if err != nil {
-		return nil, err
+		return ReleaseInfo{}, err
 	}
 	return context.jsonToReleaseInfo(response), nil
 }
 
-func (release *ReleaseInfo) updateRelease(tag string) (*ReleaseInfo, error) {
-	body, _ := json.Marshal(map[string]string{
-		"tag_name": tag,
-	})
-	response, err := release.context.APICall(APIUpdateRelease, body, release.ID)
-	fmt.Printf("Update release %s\nResult: %s\nError: %v\n", tag, response, err)
-	return release.context.jsonToReleaseInfo(response), err
+func (release ReleaseInfo) updateRelease(tag string) (ReleaseInfo, error) {
+	if _, err := release.apiCall(
+		apiDeleteRelease,
+		util.BodyReader{},
+		release.ID); err != nil {
+		return ReleaseInfo{}, err
+	}
+	return release.createRelease(tag)
 }
 
-func (context *Context) createRelease(tag string) (*ReleaseInfo, error) {
-	body, _ := json.Marshal(map[string]string{
-		"tag_name": tag,
-	})
-	response, err := context.APICall(APICreateRelease, body)
-	fmt.Printf("Create release %s\nResult: %s\nError: %v\n", tag, response, err)
+func (context Context) createRelease(tag string) (ReleaseInfo, error) {
+	response, err := context.apiCall(
+		apiCreateRelease,
+		util.BodyFromMap(map[string]string{
+			"tag_name": tag,
+		}))
 	return context.jsonToReleaseInfo(response), err
 }
 
-func (context *Context) jsonToReleaseInfo(jsonData string) *ReleaseInfo {
-	result := &ReleaseInfo{}
-	result.context = context
-	json.Unmarshal([]byte(jsonData), result)
-	return result
+func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
+	var result map[string]interface{}
+	json.Unmarshal([]byte(jsonData), &result)
+	return ReleaseInfo{
+		Context: context,
+		ID:      fmt.Sprintf("%.f", result["id"]),
+		UploadURL: uploadURLNormalizer.ReplaceAllString(
+			result["upload_url"].(string), "")}
+}
+
+func (release ReleaseInfo) uploadArtifact(path string) error {
+	_, err := release.apiCallURL(
+		http.MethodPost,
+		fmt.Sprintf("%s?name=%s", release.UploadURL, filepath.Base(path)),
+		util.BodyFromFile(path))
+	return err
 }
