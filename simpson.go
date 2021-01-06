@@ -1,11 +1,9 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/docopt/docopt-go"
 	"github.com/soerenkoehler/simpson/build"
@@ -31,14 +29,14 @@ func main() {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			}
 		} else {
-			versionLabels := []string{} // TODO
+			githubContext := github.NewDefaultContext()
 			artifacts, errs := build.TestAndBuild(
 				getString(options, "PACKAGE"),
-				versionLabels,
+				githubContext.GetVersionLabels(),
 				getTargets(options))
 			if len(errs) == 0 {
 				if hasOption(options, "--release") {
-					errs = createRelease(artifacts)
+					errs = githubContext.CreateRelease(artifacts)
 				}
 			} else {
 				fmt.Fprintf(os.Stderr, "Errors:\n%v\n", errs)
@@ -90,35 +88,4 @@ func initializeWorkflowFile() error {
 	output.Write([]byte(resource.WorkflowFile))
 
 	return nil
-}
-
-func createRelease(artifacts []string) []error {
-	githubContext := github.NewDefaultContext()
-
-	if len(githubContext.Token) > 0 {
-
-		if isVersionTag(githubContext.Ref) {
-			return []error{errors.New("TODO: Not implemented")}
-
-		} else if strings.HasPrefix(githubContext.Ref, "refs/heads/") {
-
-			githubContext.SetTag("latest", githubContext.Sha)
-			if release, err := githubContext.GetRelease("latest"); err == nil {
-				var errs []error
-				for _, artifact := range artifacts {
-					if err := release.UploadArtifact(artifact); err != nil {
-						errs = append(errs, err)
-					}
-				}
-				return errs
-			}
-			return []error{errors.New("Release 'latest' not found")}
-		}
-		return []error{errors.New("Invalid Github Context")}
-	}
-	return []error{errors.New("Github API token not found")}
-}
-
-func isVersionTag(ref string) bool {
-	return false // TODO
 }

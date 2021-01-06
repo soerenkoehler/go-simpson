@@ -18,6 +18,7 @@ var (
 	buildDate      = time.Now().UTC()
 	buildDateLong  = buildDate.Format("2006.01.02-15:04:05")
 	buildDateShort = buildDate.Format("20060102-150405")
+	TokenBuildDate = "$BUILDDATE"
 )
 
 // TestAndBuild performs the standard build process.
@@ -81,7 +82,7 @@ func buildArtifact(
 			"-a",
 			"-ldflags", fmt.Sprintf(
 				`-X "main._Version=%s"`,
-				strings.Join(targetLabels, " ")),
+				formatTargetLabels(targetLabels, buildDateLong, " ")),
 			"-o",
 			artifactDir,
 			packageName},
@@ -101,16 +102,39 @@ func createArtifactSubdir(
 		realPackageName = filepath.Base(packagePath)
 	}
 
-	targetDir := path.Join(
-		artifactsParentDir,
-		strings.Join(append([]string{realPackageName}, targetLabels...), "-"))
+	targetDir := formatTargetLabels(
+		append([]string{realPackageName}, targetLabels...),
+		buildDateShort,
+		"-")
 
-	os.MkdirAll(targetDir, 0777)
+	targetPath := path.Join(artifactsParentDir, targetDir)
 
-	result, err := filepath.Abs(targetDir)
+	os.MkdirAll(targetPath, 0777)
+
+	result, err := filepath.Abs(targetPath)
 	if err != nil {
 		panic(err)
 	}
 
 	return result
+}
+
+func formatTargetLabels(
+	targetLabels []string,
+	date string,
+	separator string) string {
+
+	result := []string{}
+	for _, label := range targetLabels {
+		result = append(result, replaceBuildDate(label, date))
+	}
+
+	return strings.Join(result, separator)
+}
+
+func replaceBuildDate(label string, date string) string {
+	if label == TokenBuildDate {
+		return date
+	}
+	return label
 }

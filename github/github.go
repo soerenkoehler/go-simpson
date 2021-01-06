@@ -8,10 +8,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 
+	"github.com/soerenkoehler/simpson/build"
 	"github.com/soerenkoehler/simpson/util"
 )
 
+var pushVersionExtractor = regexp.MustCompile(`^v\d+\.\d+\.\d+`)
 var httpClient *http.Client = &http.Client{}
 
 // Context of current Github Actions workflow call.
@@ -32,6 +36,28 @@ func NewContext(jsonContext string) Context {
 	context := Context{}
 	json.Unmarshal([]byte(jsonContext), &context)
 	return context
+}
+
+// GetVersionLabels ... TODO
+func (context Context) GetVersionLabels() []string {
+	if pushVersion, ok := context.getPushVersion(); ok {
+		return []string{pushVersion}
+	} else if context.isPushHead() {
+		return []string{build.TokenBuildDate, context.Sha[0:8]}
+	}
+	return []string{build.TokenBuildDate}
+}
+
+func (context Context) getPushVersion() (string, bool) {
+	matches := pushVersionExtractor.FindStringSubmatch(context.Ref)
+	if len(matches) == 2 {
+		return matches[1], true
+	}
+	return "", false
+}
+
+func (context Context) isPushHead() bool {
+	return strings.HasPrefix(context.Ref, "refs/heads/")
 }
 
 func (context Context) apiCall(

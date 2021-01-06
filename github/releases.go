@@ -2,7 +2,10 @@ package github
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
+	"path/filepath"
 	"regexp"
 
 	"github.com/soerenkoehler/simpson/util"
@@ -15,6 +18,33 @@ type ReleaseInfo struct {
 	Context
 	ID        string
 	UploadURL string
+}
+
+// CreateRelease ... TODO
+func (context Context) CreateRelease(artifacts []string) []error {
+	if len(context.Token) > 0 {
+
+		if _, ok := context.getPushVersion(); ok {
+
+			return []error{errors.New("TODO: Not implemented")}
+
+		} else if context.isPushHead() {
+
+			context.setTag("latest", context.Sha)
+			if release, err := context.getRelease("latest"); err == nil {
+				var errs []error
+				for _, artifact := range artifacts {
+					if err := release.uploadArtifact(artifact); err != nil {
+						errs = append(errs, err)
+					}
+				}
+				return errs
+			}
+			return []error{errors.New("Release 'latest' not found")}
+		}
+		return []error{errors.New("Invalid Github Context")}
+	}
+	return []error{errors.New("Github API token not found")}
 }
 
 // GetRelease ... TODO
