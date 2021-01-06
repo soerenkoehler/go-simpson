@@ -18,7 +18,7 @@ type ReleaseInfo struct {
 }
 
 // GetRelease ... TODO
-func (context Context) GetRelease(tag string) (ReleaseInfo, error) {
+func (context Context) getRelease(tag string) (ReleaseInfo, error) {
 	release, err := context.getReleaseByTag(tag)
 	if err == nil {
 		release, err = release.updateRelease(tag)
@@ -29,7 +29,7 @@ func (context Context) GetRelease(tag string) (ReleaseInfo, error) {
 }
 
 func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
-	response, err := context.APICall(APIGetReleaseByTag, util.BodyReader{}, tag)
+	response, err := context.apiCall(apiGetReleaseByTag, util.BodyReader{}, tag)
 	if err != nil {
 		return ReleaseInfo{}, err
 	}
@@ -37,8 +37,8 @@ func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
 }
 
 func (release ReleaseInfo) updateRelease(tag string) (ReleaseInfo, error) {
-	if _, err := release.APICall(
-		APIDeleteRelease,
+	if _, err := release.apiCall(
+		apiDeleteRelease,
 		util.BodyReader{},
 		release.ID); err != nil {
 		return ReleaseInfo{}, err
@@ -47,8 +47,8 @@ func (release ReleaseInfo) updateRelease(tag string) (ReleaseInfo, error) {
 }
 
 func (context Context) createRelease(tag string) (ReleaseInfo, error) {
-	response, err := context.APICall(
-		APICreateRelease,
+	response, err := context.apiCall(
+		apiCreateRelease,
 		util.BodyFromMap(map[string]string{
 			"tag_name": tag,
 		}))
@@ -63,4 +63,12 @@ func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
 		ID:      fmt.Sprintf("%.f", result["id"]),
 		UploadURL: uploadURLNormalizer.ReplaceAllString(
 			result["upload_url"].(string), "")}
+}
+
+func (release ReleaseInfo) uploadArtifact(path string) error {
+	_, err := release.apiCallURL(
+		http.MethodPost,
+		fmt.Sprintf("%s?name=%s", release.UploadURL, filepath.Base(path)),
+		util.BodyFromFile(path))
+	return err
 }

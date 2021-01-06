@@ -12,6 +12,8 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
+var httpClient *http.Client = &http.Client{}
+
 // Context of current Github Actions workflow call.
 type Context struct {
 	Token      string
@@ -20,28 +22,24 @@ type Context struct {
 	Sha        string
 }
 
-var httpClient *http.Client = &http.Client{}
-
-// NewDefaultContext ...
+// NewDefaultContext ... TODO
 func NewDefaultContext() Context {
 	return NewContext(os.Getenv("GITHUB_CONTEXT"))
 }
 
-// NewContext ...
+// NewContext ... TODO
 func NewContext(jsonContext string) Context {
 	context := Context{}
 	json.Unmarshal([]byte(jsonContext), &context)
 	return context
 }
 
-// APICall executes an Github API call on the given context, using the provided
-// endpoint, content and URL-values.
-func (context Context) APICall(
-	endpoint Endpoint,
+func (context Context) apiCall(
+	endpoint apiEndpoint,
 	content util.BodyReader,
 	values ...interface{}) (string, error) {
 
-	return context.APICallURL(
+	return context.apiCallURL(
 		endpoint.method,
 		fmt.Sprintf(
 			"https://api.github.com/repos/%s/%s",
@@ -50,9 +48,7 @@ func (context Context) APICall(
 		content)
 }
 
-// APICallURL executes an API call on the given context using the provided
-// method, url and content.
-func (context Context) APICallURL(
+func (context Context) apiCallURL(
 	method string,
 	url string,
 	content util.BodyReader) (string, error) {

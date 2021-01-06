@@ -16,8 +16,8 @@ const artifactsParentDir = "artifacts"
 // Build dates in several formats.
 var (
 	buildDate      = time.Now().UTC()
-	BuildDateLong  = buildDate.Format("2006.01.02-15:04:05")
-	BuildDateShort = buildDate.Format("20060102-150405")
+	buildDateLong  = buildDate.Format("2006.01.02-15:04:05")
+	buildDateShort = buildDate.Format("20060102-150405")
 )
 
 // TestAndBuild performs the standard build process.

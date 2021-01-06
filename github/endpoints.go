@@ -2,21 +2,21 @@ package github
 
 import "net/http"
 
-// Endpoint defines REST API endpoints.
-type Endpoint struct {
+// apiEndpoint defines REST API endpoints.
+type apiEndpoint struct {
 	method string
 	url    string
 }
 
 // Github API endpoints (not exhaustive)
 var (
-	APIGetRef    = Endpoint{http.MethodGet, "git/ref/%s"}
-	APICreateRef = Endpoint{http.MethodPost, "git/refs"}
-	APIUpdateRef = Endpoint{http.MethodPatch, "git/refs/%s"}
+	apiGetRef    = apiEndpoint{http.MethodGet, "git/ref/%s"}
+	apiCreateRef = apiEndpoint{http.MethodPost, "git/refs"}
+	apiUpdateRef = apiEndpoint{http.MethodPatch, "git/refs/%s"}
 
-	APIGetReleaseByTag = Endpoint{http.MethodGet, "releases/tags/%s"}
-	APICreateRelease   = Endpoint{http.MethodPost, "releases"}
-	APIDeleteRelease   = Endpoint{http.MethodDelete, "releases/%s"}
+	apiGetReleaseByTag = apiEndpoint{http.MethodGet, "releases/tags/%s"}
+	apiCreateRelease   = apiEndpoint{http.MethodPost, "releases"}
+	apiDeleteRelease   = apiEndpoint{http.MethodDelete, "releases/%s"}
 
-	APIUploadReleaseAsset = Endpoint{http.MethodPost, "releases/%s/assets?name=%s"}
+	apiUploadReleaseAsset = apiEndpoint{http.MethodPost, "releases/%s/assets?name=%s"}
 )

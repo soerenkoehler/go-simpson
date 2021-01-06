@@ -53,15 +53,15 @@ func findTarget(filter string) (TargetSpec, bool) {
 
 // Predefined TargetSpecs
 var (
-	TargetWinAmd64   = TargetSpec{"windows", "amd64", util.ZIP}
-	TargetLinuxAmd64 = TargetSpec{"linux", "amd64", util.TGZ}
-	TargetLinuxArm   = TargetSpec{"linux", "arm", util.TGZ}
-	TargetLinuxArm64 = TargetSpec{"linux", "arm64", util.TGZ}
+	targetWinAmd64   = TargetSpec{"windows", "amd64", util.ZIP}
+	targetLinuxAmd64 = TargetSpec{"linux", "amd64", util.TGZ}
+	targetLinuxArm   = TargetSpec{"linux", "arm", util.TGZ}
+	targetLinuxArm64 = TargetSpec{"linux", "arm64", util.TGZ}
 
 	AllTargets = []TargetSpec{
-		TargetWinAmd64,
-		TargetLinuxAmd64,
-		TargetLinuxArm,
-		TargetLinuxArm64,
+		targetWinAmd64,
+		targetLinuxAmd64,
+		targetLinuxArm,
+		targetLinuxArm64,
 	}
 )
