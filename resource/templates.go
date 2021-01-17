@@ -52,5 +52,5 @@ jobs:
 
       - name: Build
         run: |
-          go get github.com/soerenkoehler/simpson@dev
-          go run github.com/soerenkoehler/simpson ./${PACKAGE}--all-targets --release`
+          go get ${MODULE}@dev
+          go run ${MODULE} . --all-targets --release`
