@@ -18,7 +18,7 @@ Options:
                  create a production release with that version number.
                - Updating a HEAD ref creates a release named 'latest'.
 
-    --init     Create a template Github Action.
+    --init  Creates a template Github Action.
 
     -h --help  Show help.
     --version  Show version.`
@@ -53,4 +53,4 @@ jobs:
       - name: Build
         run: |
           go get github.com/soerenkoehler/simpson@dev
-          go run github.com/soerenkoehler/simpson ./<MAINPACKAGE> --targets windows-amd64 --release`
+          go run github.com/soerenkoehler/simpson ./${PACKAGE}--all-targets --release`

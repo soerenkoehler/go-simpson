@@ -1,11 +1,11 @@
 Simpson
 =======
 
-Simpson is a  
+Simpson is a
 
 **B**uild  
 **A**nd  
 **R**elease  
-**T**ool  
+**T**ool
 
 for Go on Github.
