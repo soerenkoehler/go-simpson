@@ -70,6 +70,7 @@ func getString(options docopt.Opts, name string) string {
 	return result
 }
 
+// TODO use go.mod or such for package
 func initializeWorkflowFile() error {
 	workflowFile := ".github/workflows/simpson-bart.yml"
 
