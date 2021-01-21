@@ -29,6 +29,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			}
 		} else {
+			// TODO check for option --latest
 			githubContext := github.NewDefaultContext()
 			artifacts, errs := build.TestAndBuild(
 				getString(options, "PACKAGE"),
