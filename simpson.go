@@ -44,8 +44,12 @@ func doMain() int {
 				githubContext.GetVersionLabels(),
 				getTargets(options))
 			if len(errs) == 0 {
-				if hasOption(options, "--release") {
+				if githubContext.IsGithubAction() {
 					errs = githubContext.CreateRelease(artifacts)
+				} else {
+					fmt.Fprint(
+						os.Stdout,
+						"Skipping release: Must run in a Github action\n")
 				}
 			} else {
 				fmt.Fprintf(os.Stderr, "Errors:\n%v\n", errs)

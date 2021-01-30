@@ -38,6 +38,10 @@ func NewContext(jsonContext string) Context {
 	return context
 }
 
+func (context Context) IsGithubAction() bool {
+	return len(context.Token) > 0
+}
+
 // GetVersionLabels ... TODO
 func (context Context) GetVersionLabels() []string {
 	if pushVersion, ok := context.getPushVersion(); ok {
