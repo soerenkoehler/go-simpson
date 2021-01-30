@@ -15,6 +15,14 @@ import (
 var _Version = "DEV"
 
 func main() {
+	retcode := 0
+	defer func() {
+		os.Exit(retcode)
+	}()
+	retcode = doMain()
+}
+
+func doMain() int {
 	options, err := docopt.ParseArgs(
 		util.ReplaceVariable(
 			resource.Usage,
@@ -41,11 +49,15 @@ func main() {
 				}
 			} else {
 				fmt.Fprintf(os.Stderr, "Errors:\n%v\n", errs)
+				return 1
 			}
 		}
 	} else {
 		fmt.Fprintf(os.Stderr, "Arguments: %v\nError: %v\n", options, err)
+		return 1
 	}
+
+	return 0
 }
 
 func getTargets(options docopt.Opts) []build.TargetSpec {
