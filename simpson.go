@@ -64,7 +64,11 @@ func getTargets(options docopt.Opts) []build.TargetSpec {
 	if hasOption(options, "--all-targets") {
 		return build.AllTargets
 	}
-	return build.GetTargets(getString(options, "--targets"))
+	targets, unknown := build.GetTargets(getString(options, "--targets"))
+	if len(unknown) > 0 {
+		fmt.Fprintf(os.Stderr, "Skipping unknown targets: %v\n", unknown)
+	}
+	return targets
 }
 
 func hasOption(options docopt.Opts, name string) bool {

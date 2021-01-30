@@ -27,15 +27,17 @@ func TestAndBuild(
 	versionLabels []string,
 	targets []TargetSpec) ([]string, []error) {
 
-	if Test() == nil {
-		return Build(packageName, versionLabels, targets)
+	if err := Test(); err != nil {
+		return []string{}, []error{err}
 	}
-
-	return []string{}, []error{}
+	return Build(packageName, versionLabels, targets)
 }
 
 // Test runs 'go test' for all packages in the current module.
 func Test() error {
+	if err := util.Execute([]string{"go", "vet", "./..."}); err != nil {
+		return err
+	}
 	return util.Execute([]string{"go", "test", "./..."})
 }
 
