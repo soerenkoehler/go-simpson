@@ -95,9 +95,18 @@ func getString(options docopt.Opts, name string) string {
 	return result
 }
 
-// TODO use go.mod or such for package
 func initializeWorkflowFile() error {
-	workflowFile := ".github/workflows/simpson-bart.yml"
+	workflowFile := ".github/workflows/simpson-build-and-release-tool.yml"
+	moduleInfo := util.FindInFile("go.mod", `^\s*module\s+(.+)$`)
+	goInfo := util.FindInFile("go.mod", `^\s*go\s+(.+)$`)
+
+	if len(moduleInfo) < 1 {
+		return errors.New("go.mod: no module found")
+	}
+
+	if len(goInfo) < 1 {
+		return errors.New("go.mod: no go version found")
+	}
 
 	err := os.MkdirAll(filepath.Dir(workflowFile), 0777)
 	if err != nil {
@@ -111,7 +120,14 @@ func initializeWorkflowFile() error {
 
 	defer output.Close()
 
-	output.Write([]byte(resource.WorkflowFile))
+	output.Write([]byte(
+		util.ReplaceVariable(
+			util.ReplaceVariable(
+				resource.WorkflowFile,
+				"SIMPSON_MODULE",
+				moduleInfo[1]),
+			"SIMPSON_GOVERSION",
+			goInfo[1])))
 
 	return nil
 }

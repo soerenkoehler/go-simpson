@@ -4,18 +4,16 @@ package resource
 const Usage = `BaRT (Build and Release Tool) ${VERSION}
 
 Usage:
-    simpson PACKAGE (--all-targets | --targets TARGETS) [--release] [--latest]
-    simpson --init
+    simpson PACKAGE (--all-targets | --targets TARGETS) [--latest] [--init]
     simpson (-h | --help | --version)
 
 Options:
     --all-targets      Build all possible targets
     --targets TARGETS  Build the given targets (comma seperated list).
 
-    --latest   Tags the latest commit and creates a release named 'latest'.
-    --release  Creates a named releases when pushing a tag 'vX.Y.Z'.
+    --latest  Also tags the latest commit and creates a release named 'latest'.
 
-    --init  Creates a template Github Action.
+    --init  Creates a Github Action file using the current commandline.
 
     -h --help  Show help.
     --version  Show version.
@@ -38,7 +36,7 @@ jobs:
       - name: Setup Go environment
         uses: actions/setup-go@v2
         with:
-          go-version: 1.15
+          go-version: ${SIMPSON_GOVERSION}
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -52,5 +50,6 @@ jobs:
 
       - name: Build
         run: |
-          go get ${MODULE}@dev
-          go run ${MODULE} . --all-targets --release`
+          go get ${SIMPSON_MODULE}@dev
+          go run ${SIMPSON_MODULE} . --all-targets --release
+`
