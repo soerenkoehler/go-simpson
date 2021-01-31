@@ -21,28 +21,17 @@ type ReleaseInfo struct {
 }
 
 // CreateRelease ... TODO
-func (context Context) CreateRelease(artifacts []string) []error {
+func (context Context) CreateRelease(
+	artifacts []string,
+	doLatest bool) []error {
+
 	if len(context.Token) > 0 {
-
-		if _, ok := context.getPushVersion(); ok {
-
-			return []error{errors.New("TODO: Not implemented")}
-
-		} else if context.isPushHead() {
-
-			context.setTag("latest", context.Sha)
-			if release, err := context.getRelease("latest"); err == nil {
-				var errs []error
-				for _, artifact := range artifacts {
-					if err := release.uploadArtifact(artifact); err != nil {
-						errs = append(errs, err)
-					}
-				}
-				return errs
-			}
-			return []error{errors.New("Release 'latest' not found")}
+		if version, ok := context.getPushVersion(); ok {
+			return context.uploadArtifacts(version, artifacts)
+		} else if doLatest && context.isPushHead() {
+			return context.uploadArtifacts("latest", artifacts)
 		}
-		return []error{errors.New("Invalid Github Context")}
+		return []error{errors.New("Pushed neither version tag nor head ref")}
 	}
 	return []error{errors.New("Github API token not found")}
 }
@@ -93,6 +82,22 @@ func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
 		ID:      fmt.Sprintf("%.f", result["id"]),
 		UploadURL: uploadURLNormalizer.ReplaceAllString(
 			result["upload_url"].(string), "")}
+}
+
+func (context Context) uploadArtifacts(
+	releaseName string,
+	artifacts []string) []error {
+
+	if release, err := context.getRelease(releaseName); err == nil {
+		var errs []error
+		for _, artifact := range artifacts {
+			if err := release.uploadArtifact(artifact); err != nil {
+				errs = append(errs, err)
+			}
+		}
+		return errs
+	}
+	return []error{fmt.Errorf("Release '%v' not found", releaseName)}
 }
 
 func (release ReleaseInfo) uploadArtifact(path string) error {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,14 +16,19 @@ import (
 var _Version = "DEV"
 
 func main() {
-	retcode := 0
+	errors := []error{}
 	defer func() {
-		os.Exit(retcode)
+		if len(errors) > 0 {
+			for _, e := range errors {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", e)
+			}
+			os.Exit(1)
+		}
 	}()
-	retcode = doMain()
+	errors = doMain()
 }
 
-func doMain() int {
+func doMain() []error {
 	options, err := docopt.ParseArgs(
 		util.ReplaceVariable(
 			resource.Usage,
@@ -33,11 +39,8 @@ func doMain() int {
 
 	if err == nil {
 		if hasOption(options, "--init") {
-			if err := initializeWorkflowFile(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
+			err = initializeWorkflowFile()
 		} else {
-			// TODO check for option --latest
 			githubContext := github.NewDefaultContext()
 			artifacts, errs := build.TestAndBuild(
 				getString(options, "PACKAGE"),
@@ -45,23 +48,24 @@ func doMain() int {
 				getTargets(options))
 			if len(errs) == 0 {
 				if githubContext.IsGithubAction() {
-					errs = githubContext.CreateRelease(artifacts)
+					errs = githubContext.CreateRelease(
+						artifacts,
+						hasOption(options, "--latest"))
 				} else {
 					fmt.Fprint(
 						os.Stdout,
 						"Skipping release: Must run in a Github action\n")
 				}
-			} else {
-				fmt.Fprintf(os.Stderr, "Errors:\n%v\n", errs)
-				return 1
 			}
+			return errs
 		}
-	} else {
-		fmt.Fprintf(os.Stderr, "Arguments: %v\nError: %v\n", options, err)
-		return 1
 	}
 
-	return 0
+	if err != nil {
+		return []error{err}
+	}
+
+	return []error{}
 }
 
 func getTargets(options docopt.Opts) []build.TargetSpec {
