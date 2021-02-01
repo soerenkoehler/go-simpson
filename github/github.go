@@ -38,6 +38,7 @@ func NewContext(jsonContext string) Context {
 	return context
 }
 
+// IsGithubAction ... TODO
 func (context Context) IsGithubAction() bool {
 	return len(context.Token) > 0
 }
@@ -54,6 +55,7 @@ func (context Context) GetVersionLabels() []string {
 
 func (context Context) getPushVersion() (string, bool) {
 	matches := pushVersionExtractor.FindStringSubmatch(context.Ref)
+	fmt.Printf("DEBUG: %v\n%v\n", context, matches)
 	if len(matches) == 2 {
 		return matches[1], true
 	}
