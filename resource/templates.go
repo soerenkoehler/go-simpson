@@ -52,5 +52,5 @@ jobs:
 
       - name: Build
         run: |
-          go run ${SIMPSON_MODULE} . --all-targets --release --latest
+          go run github.com/soerenkoehler/simpson . ${SIMPSON_CMDLINE}
 `

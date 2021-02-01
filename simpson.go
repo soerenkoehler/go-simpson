@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/docopt/docopt-go"
 	"github.com/soerenkoehler/simpson/build"
@@ -96,12 +97,8 @@ func getString(options docopt.Opts, name string) string {
 
 func initializeWorkflowFile() error {
 	workflowFile := ".github/workflows/simpson-build-and-release-tool.yml"
-	moduleInfo := util.FindInFile("go.mod", `^\s*module\s+(.+)$`)
 	goInfo := util.FindInFile("go.mod", `^\s*go\s+(.+)$`)
-
-	if len(moduleInfo) < 1 {
-		return errors.New("go.mod: no module found")
-	}
+	cmdline := strings.ReplaceAll(strings.Join(os.Args[1:], " "), " --init", "")
 
 	if len(goInfo) < 1 {
 		return errors.New("go.mod: no go version found")
@@ -123,8 +120,8 @@ func initializeWorkflowFile() error {
 		util.ReplaceVariable(
 			util.ReplaceVariable(
 				resource.WorkflowFile,
-				"SIMPSON_MODULE",
-				moduleInfo[1]),
+				"SIMPSON_CMDLINE",
+				cmdline),
 			"SIMPSON_GOVERSION",
 			goInfo[1])))
 
