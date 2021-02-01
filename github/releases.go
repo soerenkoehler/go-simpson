@@ -54,6 +54,7 @@ func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
 	if err != nil {
 		return ReleaseInfo{}, err
 	}
+	fmt.Printf("Release:\n%v\n", context.jsonToReleaseInfo(response)) // DEBUG
 	return context.jsonToReleaseInfo(response), nil
 }
 
@@ -61,6 +62,7 @@ func (release ReleaseInfo) updateRelease(
 	tag string,
 	name string) (ReleaseInfo, error) {
 
+	fmt.Printf("Update Release:\n%v %v\n", tag, name) // DEBUG
 	if _, err := release.apiCall(
 		apiDeleteRelease,
 		util.BodyReader{},
@@ -74,6 +76,7 @@ func (context Context) createRelease(
 	tag string,
 	name string) (ReleaseInfo, error) {
 
+	fmt.Printf("Create Release:\n%v %v\n", tag, name) // DEBUG
 	response, err := context.apiCall(
 		apiCreateRelease,
 		util.BodyFromMap(map[string]string{
