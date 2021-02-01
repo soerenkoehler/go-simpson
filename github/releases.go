@@ -78,6 +78,7 @@ func (context Context) createRelease(
 		apiCreateRelease,
 		util.BodyFromMap(map[string]string{
 			"tag_name": tag,
+			"name":     name,
 		}))
 	return context.jsonToReleaseInfo(response), err
 }
