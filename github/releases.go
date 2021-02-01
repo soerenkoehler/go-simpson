@@ -17,6 +17,7 @@ var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 type ReleaseInfo struct {
 	Context
 	ID        string
+	Name      string
 	UploadURL string
 }
 
@@ -41,9 +42,9 @@ func (context Context) CreateRelease(
 func (context Context) getRelease(tag string) (ReleaseInfo, error) {
 	release, err := context.getReleaseByTag(tag)
 	if err == nil {
-		release, err = release.updateRelease(tag)
+		release, err = release.updateRelease(tag, release.Name)
 	} else {
-		release, err = context.createRelease(tag)
+		release, err = context.createRelease(tag, tag)
 	}
 	return release, err
 }
@@ -56,17 +57,23 @@ func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
 	return context.jsonToReleaseInfo(response), nil
 }
 
-func (release ReleaseInfo) updateRelease(tag string) (ReleaseInfo, error) {
+func (release ReleaseInfo) updateRelease(
+	tag string,
+	name string) (ReleaseInfo, error) {
+
 	if _, err := release.apiCall(
 		apiDeleteRelease,
 		util.BodyReader{},
 		release.ID); err != nil {
 		return ReleaseInfo{}, err
 	}
-	return release.createRelease(tag)
+	return release.createRelease(tag, name)
 }
 
-func (context Context) createRelease(tag string) (ReleaseInfo, error) {
+func (context Context) createRelease(
+	tag string,
+	name string) (ReleaseInfo, error) {
+
 	response, err := context.apiCall(
 		apiCreateRelease,
 		util.BodyFromMap(map[string]string{
