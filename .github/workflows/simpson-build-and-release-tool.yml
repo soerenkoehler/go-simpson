@@ -26,4 +26,4 @@ jobs:
 
       - name: Build
         run: |
-          go run github.com/soerenkoehler/simpson . --all-targets --latest
+          go run github.com/soerenkoehler/simpson . --targets none --latest
