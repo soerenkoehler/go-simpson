@@ -50,6 +50,5 @@ jobs:
 
       - name: Build
         run: |
-          go get ${SIMPSON_MODULE}@dev
-          go run ${SIMPSON_MODULE} . --all-targets --release
+          go run ${SIMPSON_MODULE} . --all-targets --latest
 `

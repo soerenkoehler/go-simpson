@@ -29,6 +29,7 @@ func (context Context) CreateRelease(
 		if version, ok := context.getPushVersion(); ok {
 			return context.uploadArtifacts(version, artifacts)
 		} else if doLatest && context.isPushHead() {
+			context.setTag("latest", context.Sha)
 			return context.uploadArtifacts("latest", artifacts)
 		}
 		return []error{errors.New("Pushed neither version tag nor head ref")}
