@@ -38,6 +38,30 @@ func (context Context) CreateRelease(
 	return []error{errors.New("Github API token not found")}
 }
 
+func (context Context) uploadArtifacts(
+	releaseName string,
+	artifacts []string) []error {
+
+	if release, err := context.getRelease(releaseName); err == nil {
+		var errs []error
+		for _, artifact := range artifacts {
+			if err := release.uploadArtifact(artifact); err != nil {
+				errs = append(errs, err)
+			}
+		}
+		return errs
+	}
+	return []error{fmt.Errorf("Release '%v' not found", releaseName)}
+}
+
+func (release ReleaseInfo) uploadArtifact(path string) error {
+	_, err := release.apiCallURL(
+		http.MethodPost,
+		fmt.Sprintf("%s?name=%s", release.UploadURL, filepath.Base(path)),
+		util.BodyFromFile(path))
+	return err
+}
+
 // GetRelease ... TODO
 func (context Context) getRelease(tag string) (ReleaseInfo, error) {
 	release, err := context.getReleaseByTag(tag)
@@ -92,28 +116,4 @@ func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
 		Name:    result["name"].(string),
 		UploadURL: uploadURLNormalizer.ReplaceAllString(
 			result["upload_url"].(string), "")}
-}
-
-func (context Context) uploadArtifacts(
-	releaseName string,
-	artifacts []string) []error {
-
-	if release, err := context.getRelease(releaseName); err == nil {
-		var errs []error
-		for _, artifact := range artifacts {
-			if err := release.uploadArtifact(artifact); err != nil {
-				errs = append(errs, err)
-			}
-		}
-		return errs
-	}
-	return []error{fmt.Errorf("Release '%v' not found", releaseName)}
-}
-
-func (release ReleaseInfo) uploadArtifact(path string) error {
-	_, err := release.apiCallURL(
-		http.MethodPost,
-		fmt.Sprintf("%s?name=%s", release.UploadURL, filepath.Base(path)),
-		util.BodyFromFile(path))
-	return err
 }
