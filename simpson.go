@@ -16,16 +16,12 @@ import (
 var _Version = "DEV"
 
 func main() {
-	errors := []error{}
-	defer func() {
-		if len(errors) > 0 {
-			for _, e := range errors {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", e)
-			}
-			os.Exit(1)
+	if errors := doMain(); len(errors) > 0 {
+		for _, e := range errors {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", e)
 		}
-	}()
-	errors = doMain()
+		os.Exit(1)
+	}
 }
 
 func doMain() []error {
