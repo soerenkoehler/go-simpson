@@ -4,16 +4,18 @@ package resource
 const Usage = `BaRT (Build and Release Tool) ${VERSION}
 
 Usage:
-    simpson PACKAGE (--all-targets | --targets TARGETS) [--latest] [--init]
+    simpson PACKAGE (--all-targets | --targets TARGETS) [--latest] [--skip-upload] [--init]
     simpson (-h | --help | --version)
 
 Options:
     --all-targets      Build all possible targets
     --targets TARGETS  Build the given targets (comma seperated list).
 
-    --latest  Also tags the latest commit and creates a release named 'latest'.
+    --latest       Tags the latest commit and creates a release named 'latest'.
 
-    --init  Creates a Github Action file using the current commandline.
+    --skip-upload  Build artifacts but do not upload them to the release.
+
+    --init         Creates a Github Action file using the current commandline.
 
     -h --help  Show help.
     --version  Show version.
@@ -50,5 +52,5 @@ jobs:
 
       - name: Build
         run: |
-          go run ${SIMPSON_MODULE} . --all-targets --latest
+          go run ${SIMPSON_MODULE} . --all-targets --release --latest
 `

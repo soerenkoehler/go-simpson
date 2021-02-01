@@ -44,6 +44,9 @@ func doMain() []error {
 				getTargets(options))
 			if len(errs) == 0 {
 				if githubContext.IsGithubAction() {
+					if hasOption(options, "--skip-upload") {
+						artifacts = []string{}
+					}
 					errs = githubContext.CreateRelease(
 						artifacts,
 						hasOption(options, "--latest"))
