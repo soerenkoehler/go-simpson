@@ -52,5 +52,5 @@ jobs:
 
       - name: Build
         run: |
-          go run github.com/soerenkoehler/simpson . ${SIMPSON_CMDLINE}
+          go run github.com/soerenkoehler/simpson ${SIMPSON_CMDLINE}
 `
