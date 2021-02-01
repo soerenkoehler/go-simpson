@@ -32,14 +32,17 @@ func (target TargetSpec) Env() []string {
 }
 
 // GetTargets ... TODO
-func GetTargets(filterList string) []TargetSpec {
+func GetTargets(filterList string) ([]TargetSpec, []string) {
 	result := []TargetSpec{}
+	unknown := []string{}
 	for _, filter := range strings.Split(filterList, ",") {
 		if target, found := findTarget(filter); found {
 			result = append(result, target)
+		} else {
+			unknown = append(unknown, filter)
 		}
 	}
-	return result
+	return result, unknown
 }
 
 func findTarget(filter string) (TargetSpec, bool) {

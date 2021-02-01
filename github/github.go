@@ -15,7 +15,7 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
-var pushVersionExtractor = regexp.MustCompile(`^v\d+\.\d+\.\d+`)
+var pushVersionExtractor = regexp.MustCompile(`^refs/tags/(v\d+\.\d+\.\d+)`)
 var httpClient *http.Client = &http.Client{}
 
 // Context of current Github Actions workflow call.
@@ -36,6 +36,11 @@ func NewContext(jsonContext string) Context {
 	context := Context{}
 	json.Unmarshal([]byte(jsonContext), &context)
 	return context
+}
+
+// IsGithubAction ... TODO
+func (context Context) IsGithubAction() bool {
+	return len(context.Token) > 0
 }
 
 // GetVersionLabels ... TODO

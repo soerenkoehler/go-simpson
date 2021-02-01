@@ -4,24 +4,22 @@ package resource
 const Usage = `BaRT (Build and Release Tool) ${VERSION}
 
 Usage:
-    simpson PACKAGE (--all-targets | --targets TARGETS) [--release]
-    simpson --init
+    simpson PACKAGE (--all-targets | --targets TARGETS) [--latest] [--init]
     simpson (-h | --help | --version)
 
 Options:
     --all-targets      Build all possible targets
     --targets TARGETS  Build the given targets (comma seperated list).
 
-    --release  Creates a tagged release and uploads the current artifacts.
-               - Must run in a Github action (push event).
-               - Pushing a tag with a version number (like 'v0.0.0') will
-                 create a production release with that version number.
-               - Updating a HEAD ref creates a release named 'latest'.
+    --latest  Also tags the latest commit and creates a release named 'latest'.
 
-    --init     Create a template Github Action.
+    --init  Creates a Github Action file using the current commandline.
 
     -h --help  Show help.
-    --version  Show version.`
+    --version  Show version.
+
+See detailed documentation under: https://github.com/soerenkoehler/simpson/
+`
 
 // WorkflowFile : Template File for Github Actions.
 const WorkflowFile = `name: Build And Release Tool
@@ -38,7 +36,7 @@ jobs:
       - name: Setup Go environment
         uses: actions/setup-go@v2
         with:
-          go-version: 1.15
+          go-version: ${SIMPSON_GOVERSION}
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -52,5 +50,5 @@ jobs:
 
       - name: Build
         run: |
-          go get github.com/soerenkoehler/simpson@dev
-          go run github.com/soerenkoehler/simpson ./<MAINPACKAGE> --targets windows-amd64 --release`
+          go run ${SIMPSON_MODULE} . --all-targets --latest
+`
