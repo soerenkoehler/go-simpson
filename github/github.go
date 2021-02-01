@@ -15,7 +15,7 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
-var pushVersionExtractor = regexp.MustCompile(`^\s*(v\d+\.\d+\.\d+)`)
+var pushVersionExtractor = regexp.MustCompile(`^/refs/tags/(v\d+\.\d+\.\d+)`)
 var httpClient *http.Client = &http.Client{}
 
 // Context of current Github Actions workflow call.
