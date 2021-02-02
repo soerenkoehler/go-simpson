@@ -58,7 +58,7 @@ func (release ReleaseInfo) uploadArtifact(path string) error {
 	_, err := release.apiCallURL(
 		http.MethodPost,
 		fmt.Sprintf(
-			"%s?name=%s",
+			"%v?name=%v",
 			uploadURLNormalizer.ReplaceAllString(release.UploadURL, ""),
 			filepath.Base(path)),
 		util.BodyFromFile(path))

@@ -81,7 +81,7 @@ func CreateArchive(
 	contentPath string) (string, error) {
 
 	archiveFilePath := fmt.Sprintf(
-		"%s.%s",
+		"%v.%v",
 		contentPath,
 		archiveType.Extension)
 	archiveFile, err := os.Create(archiveFilePath)
