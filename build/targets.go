@@ -16,15 +16,15 @@ type TargetSpec struct {
 
 // Desc returns a string representation of the TargetSpec.
 func (target TargetSpec) Desc() string {
-	return fmt.Sprintf("%s-%s", target.os, target.arch)
+	return fmt.Sprintf("%v-%v", target.os, target.arch)
 }
 
 // Env returns a list of environment variables for the Go compiler based on the
 // TargetSpec.
 func (target TargetSpec) Env() []string {
 	environment := []string{
-		fmt.Sprintf("GOOS=%s", target.os),
-		fmt.Sprintf("GOARCH=%s", target.arch)}
+		fmt.Sprintf("GOOS=%v", target.os),
+		fmt.Sprintf("GOARCH=%v", target.arch)}
 	if target.arch == "arm" {
 		environment = append(environment, "GOARM=7")
 	}

@@ -40,9 +40,9 @@ func (context Context) createTag(tag string, sha string) error {
 }
 
 func fullTagPath(tag string) string {
-	return fmt.Sprintf("refs/%s", tagPath(tag))
+	return fmt.Sprintf("refs/%v", tagPath(tag))
 }
 
 func tagPath(tag string) string {
-	return fmt.Sprintf("tags/%s", tag)
+	return fmt.Sprintf("tags/%v", tag)
 }

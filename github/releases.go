@@ -15,10 +15,10 @@ var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 
 // ReleaseInfo ... TODO
 type ReleaseInfo struct {
-	Context
-	ID        string
-	Name      string
-	UploadURL string
+	Context   `json:"-"`
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	UploadURL string `json:"upload_url"`
 }
 
 // CreateRelease ... TODO
@@ -57,40 +57,47 @@ func (context Context) uploadArtifacts(
 func (release ReleaseInfo) uploadArtifact(path string) error {
 	_, err := release.apiCallURL(
 		http.MethodPost,
-		fmt.Sprintf("%s?name=%s", release.UploadURL, filepath.Base(path)),
+		fmt.Sprintf(
+			"%v?name=%v",
+			uploadURLNormalizer.ReplaceAllString(release.UploadURL, ""),
+			filepath.Base(path)),
 		util.BodyFromFile(path))
 	return err
 }
 
 // GetRelease ... TODO
 func (context Context) getRelease(tag string) (ReleaseInfo, error) {
+
 	release, err := context.getReleaseByTag(tag)
+
 	if err == nil {
-		release, err = release.updateRelease(tag, release.Name)
-	} else {
-		release, err = context.createRelease(tag, tag)
+		return release.updateRelease(tag, release.Name)
 	}
-	return release, err
+
+	return context.createRelease(tag, tag)
 }
 
 func (context Context) getReleaseByTag(tag string) (ReleaseInfo, error) {
+
 	response, err := context.apiCall(apiGetReleaseByTag, util.BodyReader{}, tag)
+
 	if err != nil {
 		return ReleaseInfo{}, err
 	}
-	return context.jsonToReleaseInfo(response), nil
+
+	return context.jsonToReleaseInfo(response)
 }
 
 func (release ReleaseInfo) updateRelease(
 	tag string,
 	name string) (ReleaseInfo, error) {
 
-	if _, err := release.apiCall(
-		apiDeleteRelease,
-		util.BodyReader{},
-		release.ID); err != nil {
+	_, err := release.apiCall(apiDeleteRelease, util.BodyReader{}, release.ID)
+
+	if err != nil {
 		return ReleaseInfo{}, err
 	}
+
 	return release.createRelease(tag, name)
 }
 
@@ -104,16 +111,21 @@ func (context Context) createRelease(
 			"tag_name": tag,
 			"name":     name,
 		}))
-	return context.jsonToReleaseInfo(response), err
+
+	if err != nil {
+		return ReleaseInfo{}, err
+	}
+
+	return context.jsonToReleaseInfo(response)
 }
 
-func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
-	var result map[string]interface{}
-	json.Unmarshal([]byte(jsonData), &result)
-	return ReleaseInfo{
+func (context Context) jsonToReleaseInfo(jsonData string) (ReleaseInfo, error) {
+
+	result := ReleaseInfo{
 		Context: context,
-		ID:      fmt.Sprintf("%.f", result["id"]),
-		Name:    result["name"].(string),
-		UploadURL: uploadURLNormalizer.ReplaceAllString(
-			result["upload_url"].(string), "")}
+	}
+
+	err := json.Unmarshal([]byte(jsonData), &result)
+
+	return result, err
 }

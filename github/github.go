@@ -73,7 +73,7 @@ func (context Context) apiCall(
 	return context.apiCallURL(
 		endpoint.method,
 		fmt.Sprintf(
-			"https://api.github.com/repos/%s/%s",
+			"https://api.github.com/repos/%v/%v",
 			context.Repository,
 			fmt.Sprintf(endpoint.url, values...)),
 		content)
@@ -92,7 +92,7 @@ func (context Context) apiCallURL(
 	request.ContentLength = content.Length()
 	// request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
 	request.Header.Set("Content-Type", "application/octet-stream")
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", context.Token))
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", context.Token))
 
 	response, err := httpClient.Do(request)
 	if err != nil {
