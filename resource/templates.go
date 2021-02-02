@@ -52,5 +52,6 @@ jobs:
 
       - name: Build
         run: |
+          go get github.com/soerenkoehler/simpson@main
           go run github.com/soerenkoehler/simpson ${SIMPSON_CMDLINE}
 `
