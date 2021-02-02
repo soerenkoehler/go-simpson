@@ -108,12 +108,12 @@ func (context Context) createRelease(
 }
 
 func (context Context) jsonToReleaseInfo(jsonData string) ReleaseInfo {
-	var result map[string]interface{}
+	var result map[string]string
 	json.Unmarshal([]byte(jsonData), &result)
 	return ReleaseInfo{
 		Context: context,
-		ID:      fmt.Sprintf("%.f", result["id"]),
-		Name:    result["name"].(string),
+		ID:      result["id"],
+		Name:    result["name"],
 		UploadURL: uploadURLNormalizer.ReplaceAllString(
-			result["upload_url"].(string), "")}
+			result["upload_url"], "")}
 }
