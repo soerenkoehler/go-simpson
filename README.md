@@ -11,34 +11,50 @@ Features
 *   multi platform builds
 *   automatic latest release
 *   manually triggered tagged releases
-*   creating zip and tgz archives depending on target platform
+*   creating archives depending on target platform:
+    * Windows: zip
+    * Linux: tgz
 
 Usage
 -----
 
-### Downloading ###
+*   For a local build execute the following in your module workspace:
+    ```
+    go run github.com/soerenkoehler/simpson MAINPACKAGE [OPTIONS...]
+    ```
+    Since there is no Github Actions context, Simpson will skip release related
+    tasks.
 
-TODO `GOPROXY=direct`
+    The local build creates a directory `artifacts` where it places the build artifacts (as well in sub directories and compressed archives).
 
-```
-go get github.com/soerenkoehler/simpson@main
-```
+*   To prepare a workflow file for Github Actions add the option `--init`:
+    ```
+    go run github.com/soerenkoehler/simpson MAINPACKAGE [OPTIONS...] --init
+    ```
 
-```
-go get github.com/soerenkoehler/simpson@<VERSION>
-```
+*   `go run` should normally request the most recent release version. But if
+    your Go module cache already contains an older (or wrong) version you may consider using `go get` to fetch the latest (or a specific) version.
+    ```
+    go get -u github.com/soerenkoehler/simpson@main
+    go get -u github.com/soerenkoehler/simpson@<VERSION>
+    ```
 
-### Running ###
+*   Running Simpson locally will modify your `go.mod` and `go.sum` files. So you
+    should run `go mod tidy` from time to time.
 
-```
-go run github.com/soerenkoehler/simpson MAINPACKAGE [OPTIONS...]
-```
+*   The current workflow template file sets `GOPROXY=direct`. If you do not want
+    this, feel free to edit the workflow file.
+
+### Creating Named Releases ###
 
 ### General Oprions ###
 
 ```
 --init
 ```
+
+Creates a file `.github/workflows/simpson-build-and-release-tool.yml` with the
+given options except `--init`.
 
 ### Build Options ###
 
@@ -65,6 +81,8 @@ Shortcut to build all supported targets.
 ```
 --latest
 ```
+
+TODO: handling changing tag `latest`
 
 ```
 --skip-upload
