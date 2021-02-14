@@ -133,3 +133,5 @@ switch off such behaviour and fetch tags manually when required:
 
 Add this option if you want to run `go vet`, `go test` and `go build` but you do
 not need the created binary artifacts.
+
+Test
