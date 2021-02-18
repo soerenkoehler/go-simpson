@@ -5,7 +5,7 @@ package github
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -99,7 +99,7 @@ func (context Context) apiCallURL(
 		return "", err
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
 		return "", err
