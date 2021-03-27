@@ -83,7 +83,10 @@ func buildArtifact(
 			"build",
 			"-a",
 			"-ldflags", fmt.Sprintf(
-				`-X "main._Version=%v"`,
+				// -s  omit symbols
+				// -w  omit DWARF
+				// -X  set string value
+				`-s -w -X "main._Version=%v"`,
 				formatTargetLabels(targetLabels, buildDateLong, " ")),
 			"-o",
 			artifactDir,
