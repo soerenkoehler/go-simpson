@@ -2,16 +2,16 @@ package build
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/soerenkoehler/simpson/util"
 )
 
 // TargetSpec describes a build target architecture.
 type TargetSpec struct {
-	os          string
-	arch        string
-	archiveType util.ArchiveType
+	os                  string
+	arch                string
+	executableExtension string
+	archiveType         util.ArchiveType
 }
 
 // Desc returns a string representation of the TargetSpec.
@@ -32,10 +32,10 @@ func (target TargetSpec) Env() []string {
 }
 
 // GetTargets ... TODO
-func GetTargets(filterList string) ([]TargetSpec, []string) {
+func GetTargets(filters []string) ([]TargetSpec, []string) {
 	result := []TargetSpec{}
 	unknown := []string{}
-	for _, filter := range strings.Split(filterList, ",") {
+	for _, filter := range filters {
 		if target, found := findTarget(filter); found {
 			result = append(result, target)
 		} else {
@@ -56,10 +56,26 @@ func findTarget(filter string) (TargetSpec, bool) {
 
 // Predefined TargetSpecs
 var (
-	targetWinAmd64   = TargetSpec{"windows", "amd64", util.ZIP}
-	targetLinuxAmd64 = TargetSpec{"linux", "amd64", util.TGZ}
-	targetLinuxArm   = TargetSpec{"linux", "arm", util.TGZ}
-	targetLinuxArm64 = TargetSpec{"linux", "arm64", util.TGZ}
+	targetWinAmd64 = TargetSpec{
+		os:                  "windows",
+		arch:                "amd64",
+		executableExtension: "exe",
+		archiveType:         util.ZIP}
+	targetLinuxAmd64 = TargetSpec{
+		os:                  "linux",
+		arch:                "amd64",
+		executableExtension: "",
+		archiveType:         util.TGZ}
+	targetLinuxArm = TargetSpec{
+		os:                  "linux",
+		arch:                "arm",
+		executableExtension: "",
+		archiveType:         util.TGZ}
+	targetLinuxArm64 = TargetSpec{
+		os:                  "linux",
+		arch:                "arm64",
+		executableExtension: "",
+		archiveType:         util.TGZ}
 
 	AllTargets = []TargetSpec{
 		targetWinAmd64,

@@ -24,13 +24,14 @@ var (
 // TestAndBuild performs the standard build process.
 func TestAndBuild(
 	packageName string,
-	versionLabels []string,
-	targets []TargetSpec) ([]string, []error) {
+	artifactName string,
+	targets []TargetSpec,
+	versionLabels []string) ([]string, []error) {
 
 	if err := Test(); err != nil {
 		return []string{}, []error{err}
 	}
-	return Build(packageName, versionLabels, targets)
+	return Build(packageName, artifactName, targets, versionLabels)
 }
 
 // Test runs 'go test' for all packages in the current module.
@@ -46,8 +47,9 @@ func Test() error {
 // directory 'artifacts'.
 func Build(
 	packageName string,
-	versionLabels []string,
-	targets []TargetSpec) ([]string, []error) {
+	artifactName string,
+	targets []TargetSpec,
+	versionLabels []string) ([]string, []error) {
 
 	os.RemoveAll(artifactsParentDir)
 
@@ -57,6 +59,7 @@ func Build(
 	for _, target := range targets {
 		if path, err := buildArtifact(
 			packageName,
+			artifactName,
 			target,
 			versionLabels); err == nil {
 			artifactList = append(artifactList, path)
@@ -70,12 +73,17 @@ func Build(
 
 func buildArtifact(
 	packageName string,
+	artifactName string,
 	target TargetSpec,
 	versionLabels []string) (string, error) {
 
 	// TODO include git ref info
 	targetLabels := append(versionLabels, target.Desc())
-	artifactDir := createArtifactSubdir(packageName, targetLabels)
+	artifactDir, artifactFile := createArtifactSubdir(
+		packageName,
+		artifactName,
+		target,
+		targetLabels)
 
 	if err := util.Execute(
 		[]string{
@@ -88,8 +96,7 @@ func buildArtifact(
 				// -X  set string value
 				`-s -w -X "main._Version=%v"`,
 				formatTargetLabels(targetLabels, buildDateLong, " ")),
-			"-o",
-			artifactDir,
+			"-o", artifactFile,
 			packageName},
 		target.Env()...); err != nil {
 		return "", err
@@ -100,11 +107,16 @@ func buildArtifact(
 
 func createArtifactSubdir(
 	packageName string,
-	targetLabels []string) string {
+	artifactName string,
+	target TargetSpec,
+	targetLabels []string) (string, string) {
 
-	realPackageName := packageName
-	if packagePath, err := filepath.Abs(packageName); err == nil {
-		realPackageName = filepath.Base(packagePath)
+	realPackageName := artifactName
+	if len(realPackageName) == 0 {
+		realPackageName = packageName
+		if packagePath, err := filepath.Abs(packageName); err == nil {
+			realPackageName = filepath.Base(packagePath)
+		}
 	}
 
 	targetDir := formatTargetLabels(
@@ -116,12 +128,20 @@ func createArtifactSubdir(
 
 	os.MkdirAll(targetPath, 0777)
 
-	result, err := filepath.Abs(targetPath)
+	artifactDir, err := filepath.Abs(targetPath)
 	if err != nil {
 		panic(err)
 	}
 
-	return result
+	artifactFile := realPackageName
+	if len(artifactName) > 0 {
+		artifactFile = artifactName
+	}
+	if len(target.executableExtension) > 0 {
+		artifactFile += "." + target.executableExtension
+	}
+
+	return artifactDir, path.Join(artifactDir, artifactFile)
 }
 
 func formatTargetLabels(
