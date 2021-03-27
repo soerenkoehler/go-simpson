@@ -25,6 +25,9 @@ func Execute(cmdline []string, env ...string) error {
 	go printOutput(output)
 
 	err := proc.Run()
+	if err != nil {
+		err = fmt.Errorf("running %v: %v", cmdline, err)
+	}
 
 	return err
 }

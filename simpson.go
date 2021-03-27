@@ -23,12 +23,13 @@ var _Description string
 var _Version = "DEV"
 
 var cli struct {
-	Package    string   `arg:""`
-	AllTargets bool     `name:"all-targets" short:"a" xor:"targets" help:"Build all possible targets"`
-	Targets    []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets (comma seperated list)."`
-	Latest     bool     `name:"latest" short:"l" help:"Tags the latest commit and creates a release named 'latest'."`
-	SkipUpload bool     `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
-	Init       bool     `name:"init" short:"i" help:"Creates a Github Action file using the current commandline."`
+	Package      string   `arg:""`
+	ArtifactName string   `name:"artifact-name" help:"An alternate base name for the artifact files."`
+	AllTargets   bool     `name:"all-targets" short:"a" xor:"targets" help:"Build all possible targets"`
+	Targets      []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets (comma seperated list)."`
+	Latest       bool     `name:"latest" short:"l" help:"Tags the latest commit and creates a release named 'latest'."`
+	SkipUpload   bool     `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
+	Init         bool     `name:"init" short:"i" help:"Creates a Github Action file using the current commandline."`
 }
 
 func main() {
@@ -51,8 +52,9 @@ func doMain() error {
 		githubContext := github.NewDefaultContext()
 		artifacts, errs := build.TestAndBuild(
 			cli.Package,
-			githubContext.GetVersionLabels(),
-			getTargets())
+			cli.ArtifactName,
+			getTargets(),
+			githubContext.GetVersionLabels())
 		if len(errs) == 0 {
 			if githubContext.IsGithubAction() {
 				if cli.SkipUpload {
@@ -65,7 +67,10 @@ func doMain() error {
 					"Skipping release: Must run in a Github action\n")
 			}
 		}
-		return fmt.Errorf("multiple errors: %v", errs)
+		if len(errs) != 0 {
+			return fmt.Errorf("multiple errors: %v", errs)
+		}
+		return nil
 	}
 }
 
