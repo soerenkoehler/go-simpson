@@ -6,11 +6,13 @@ import (
 	"regexp"
 )
 
-// ReplaceVariable replaces scans TEXT for occurences of ${NAME} and replaces
+// ReplaceVariables replaces scans TEXT for occurences of ${NAME} and replaces
 // them with VALUE.
-func ReplaceVariable(text, name, value string) string {
-	if search, err := regexp.Compile(`\$\{` + name + `\}`); err == nil {
-		return search.ReplaceAllString(text, value)
+func ReplaceVariables(text string, replacements map[string]string) string {
+	for k, v := range replacements {
+		if search, err := regexp.Compile(`\$\{` + k + `\}`); err == nil {
+			text = search.ReplaceAllString(text, v)
+		}
 	}
 	return text
 }

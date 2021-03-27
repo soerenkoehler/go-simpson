@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/soerenkoehler/simpson/util"
 )
@@ -32,10 +31,10 @@ func (target TargetSpec) Env() []string {
 }
 
 // GetTargets ... TODO
-func GetTargets(filterList string) ([]TargetSpec, []string) {
+func GetTargets(filters []string) ([]TargetSpec, []string) {
 	result := []TargetSpec{}
 	unknown := []string{}
-	for _, filter := range strings.Split(filterList, ",") {
+	for _, filter := range filters {
 		if target, found := findTarget(filter); found {
 			result = append(result, target)
 		} else {
