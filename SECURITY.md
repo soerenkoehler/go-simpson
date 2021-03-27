@@ -4,8 +4,8 @@
 
 | Version   | Supported          |
 | --------- | ------------------ |
-|   0.1.2   | :white_check_mark: |
-| < 0.1.2   | :x:                |
+|   0.1.3   | :white_check_mark: |
+| < 0.1.3   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -13,4 +13,4 @@ To report any vulnerability or bugs open an issue at:
 
 https://github.com/soerenkoehler/simpson/issues
 
-I will respond as soon as possible as the daily live allows for a hoopy coding project.
+I will respond as soon as possible as the daily live allows for a hobby coding project.

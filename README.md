@@ -12,8 +12,8 @@ Features
 * automatic latest release
 * manually triggered tagged releases
 * creating archives depending on target platform:
-    * Windows: zip
-    * Linux: tgz
+  * Windows: zip
+  * Linux: tgz
 
 Usage
 -----
