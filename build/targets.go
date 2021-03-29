@@ -6,7 +6,6 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
-// TargetSpec describes a build target architecture.
 type TargetSpec struct {
 	os                  string
 	arch                string
@@ -14,7 +13,6 @@ type TargetSpec struct {
 	archiveType         util.ArchiveType
 }
 
-// Desc returns a string representation of the TargetSpec.
 func (target TargetSpec) Desc() string {
 	return fmt.Sprintf("%v-%v", target.os, target.arch)
 }
@@ -31,7 +29,6 @@ func (target TargetSpec) Env() []string {
 	return environment
 }
 
-// GetTargets ... TODO
 func GetTargets(filters []string) ([]TargetSpec, []string) {
 	result := []TargetSpec{}
 	unknown := []string{}
