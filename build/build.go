@@ -61,11 +61,12 @@ func Build(
 	errorList := []error{}
 
 	for _, target := range targets {
-		if archivePath, archiveHash, err := buildArtifact(
+		archivePath, archiveHash, err := buildArtifact(
 			packageName,
 			artifactName,
 			target,
-			versionLabels); err == nil {
+			versionLabels)
+		if err == nil {
 			artifactList = append(artifactList, archivePath)
 			hashList = append(
 				hashList,
@@ -75,14 +76,36 @@ func Build(
 		}
 	}
 
-	hashFilePath := path.Join(artifactsParentDir, hashFileName)
-	if hashFile, err := os.Create(hashFilePath); err == nil {
-		defer hashFile.Close()
-		hashFile.WriteString(strings.Join(hashList, "\n"))
+	hashFilePath, err := writeHashFile(hashList)
+	if err == nil {
 		artifactList = append(artifactList, hashFilePath)
+	} else {
+		errorList = append(errorList, err)
 	}
 
 	return artifactList, errorList
+}
+
+func writeHashFile(hashList []string) (string, error) {
+	hashFilePathRel := path.Join(artifactsParentDir, hashFileName)
+
+	hashFilePathAbs, err := filepath.Abs(hashFilePathRel)
+	if err != nil {
+		return "", err
+	}
+
+	hashFile, err := os.Create(hashFilePathAbs)
+	if err != nil {
+		return "", err
+	}
+
+	defer hashFile.Close()
+	_, err = hashFile.WriteString(strings.Join(hashList, "\n"))
+	if err != nil {
+		return "", err
+	}
+
+	return hashFilePathAbs, nil
 }
 
 func buildArtifact(
