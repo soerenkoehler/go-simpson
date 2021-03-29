@@ -1,7 +1,5 @@
 package github
 
-// TODO paginated responses
-
 import (
 	"encoding/json"
 	"fmt"
@@ -26,24 +24,20 @@ type Context struct {
 	Sha        string
 }
 
-// NewDefaultContext ... TODO
 func NewDefaultContext() Context {
 	return NewContext(os.Getenv("GITHUB_CONTEXT"))
 }
 
-// NewContext ... TODO
 func NewContext(jsonContext string) Context {
 	context := Context{}
 	json.Unmarshal([]byte(jsonContext), &context)
 	return context
 }
 
-// IsGithubAction ... TODO
 func (context Context) IsGithubAction() bool {
 	return len(context.Token) > 0
 }
 
-// GetVersionLabels ... TODO
 func (context Context) GetVersionLabels() []string {
 	if pushVersion, ok := context.getPushVersion(); ok {
 		return []string{pushVersion}
@@ -90,7 +84,6 @@ func (context Context) apiCallURL(
 	}
 
 	request.ContentLength = content.Length()
-	// request.Header.Set("Content-Length", fmt.Sprint(content.Length()))
 	request.Header.Set("Content-Type", "application/octet-stream")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", context.Token))
 
@@ -111,7 +104,7 @@ func (context Context) apiCallURL(
 		return bodyStr, nil
 	}
 
-	return bodyStr, fmt.Errorf("Status: %d", response.StatusCode)
+	return bodyStr, fmt.Errorf("HTTP-Status: %d", response.StatusCode)
 }
 
 func isHTTPSuccess(response *http.Response) bool {

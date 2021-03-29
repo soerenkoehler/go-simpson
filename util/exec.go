@@ -8,7 +8,6 @@ import (
 	"os/exec"
 )
 
-// Execute ... TODO
 func Execute(cmdline []string, env ...string) error {
 	fmt.Fprintf(os.Stdout, "Executing %v\n", cmdline)
 

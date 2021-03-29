@@ -5,6 +5,8 @@ import (
 	"archive/zip"
 	"compress/flate"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -44,7 +46,6 @@ func (archive archiveTgz) Close() error {
 	return archive.gzWriter.Close()
 }
 
-// ArchiveType ... TODO
 type ArchiveType struct {
 	Creator   func(io.Writer) archiveBase
 	Extension string
@@ -75,16 +76,21 @@ var (
 		"tgz"}
 )
 
-// CreateArchive ... TODO
+// Creates an archive of the given type with the content from contentPath.
+//
+// Return values: archivePath, archiveHash, error
+//
 func CreateArchive(
 	archiveType ArchiveType,
-	contentPath string) (string, error) {
+	contentPath string) (string, string, error) {
 
 	archiveFilePath := fmt.Sprintf(
 		"%v.%v",
 		contentPath,
 		archiveType.Extension)
 	archiveFile, err := os.Create(archiveFilePath)
+	checksum := sha256.New()
+	output := io.MultiWriter(archiveFile, checksum)
 
 	if err == nil {
 
@@ -92,14 +98,14 @@ func CreateArchive(
 			archiveFile.Close()
 		}()
 
-		archive := archiveType.Creator(archiveFile)
+		archive := archiveType.Creator(output)
 
 		addFiles(archive, contentPath)
 
 		archive.Close()
 	}
 
-	return archiveFilePath, err
+	return archiveFilePath, hex.EncodeToString(checksum.Sum(nil)), err
 }
 
 func addFiles(archive archiveBase, contentPath string) error {

@@ -13,7 +13,6 @@ import (
 
 var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 
-// ReleaseInfo ... TODO
 type ReleaseInfo struct {
 	Context   `json:"-"`
 	ID        int64  `json:"id"`
@@ -21,7 +20,6 @@ type ReleaseInfo struct {
 	UploadURL string `json:"upload_url"`
 }
 
-// CreateRelease ... TODO
 func (context Context) CreateRelease(
 	artifacts []string,
 	doLatest bool) []error {
@@ -65,7 +63,6 @@ func (release ReleaseInfo) uploadArtifact(path string) error {
 	return err
 }
 
-// GetRelease ... TODO
 func (context Context) getRelease(tag string) (ReleaseInfo, error) {
 
 	release, err := context.getReleaseByTag(tag)

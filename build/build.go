@@ -11,7 +11,10 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
-const artifactsParentDir = "artifacts"
+const (
+	artifactsParentDir = "artifacts"
+	hashFileName       = "sha256.txt"
+)
 
 // Build dates in several formats.
 var (
@@ -52,32 +55,66 @@ func Build(
 	versionLabels []string) ([]string, []error) {
 
 	os.RemoveAll(artifactsParentDir)
+	os.Mkdir(artifactsParentDir, 0777)
 
 	artifactList := []string{}
+	hashList := []string{}
 	errorList := []error{}
 
 	for _, target := range targets {
-		if path, err := buildArtifact(
+		archivePath, archiveHash, err := buildArtifact(
 			packageName,
 			artifactName,
 			target,
-			versionLabels); err == nil {
-			artifactList = append(artifactList, path)
+			versionLabels)
+		if err == nil {
+			artifactList = append(artifactList, archivePath)
+			hashList = append(
+				hashList,
+				fmt.Sprintf("%s *%s", archiveHash, path.Base(archivePath)))
 		} else {
 			errorList = append(errorList, err)
 		}
 	}
 
+	hashFilePath, err := writeHashFile(hashList)
+	if err == nil {
+		artifactList = append(artifactList, hashFilePath)
+	} else {
+		errorList = append(errorList, err)
+	}
+
 	return artifactList, errorList
+}
+
+func writeHashFile(hashList []string) (string, error) {
+	hashFilePathRel := path.Join(artifactsParentDir, hashFileName)
+
+	hashFilePathAbs, err := filepath.Abs(hashFilePathRel)
+	if err != nil {
+		return "", err
+	}
+
+	hashFile, err := os.Create(hashFilePathAbs)
+	if err != nil {
+		return "", err
+	}
+
+	defer hashFile.Close()
+	_, err = hashFile.WriteString(strings.Join(hashList, "\n"))
+	if err != nil {
+		return "", err
+	}
+
+	return hashFilePathAbs, nil
 }
 
 func buildArtifact(
 	packageName string,
 	artifactName string,
 	target TargetSpec,
-	versionLabels []string) (string, error) {
+	versionLabels []string) (string, string, error) {
 
-	// TODO include git ref info
 	targetLabels := append(versionLabels, target.Desc())
 	artifactDir, artifactFile := createArtifactSubdir(
 		packageName,
@@ -99,7 +136,7 @@ func buildArtifact(
 			"-o", artifactFile,
 			packageName},
 		target.Env()...); err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	return util.CreateArchive(target.archiveType, artifactDir)
@@ -126,7 +163,7 @@ func createArtifactSubdir(
 
 	targetPath := path.Join(artifactsParentDir, targetDir)
 
-	os.MkdirAll(targetPath, 0777)
+	os.Mkdir(targetPath, 0777)
 
 	artifactDir, err := filepath.Abs(targetPath)
 	if err != nil {

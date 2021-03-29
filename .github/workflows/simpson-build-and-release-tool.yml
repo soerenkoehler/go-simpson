@@ -26,4 +26,4 @@ jobs:
 
       - name: Build
         run: |
-          go run github.com/soerenkoehler/simpson . --all-targets --latest --skip-upload
+          go run github.com/soerenkoehler/simpson --latest --skip-upload
