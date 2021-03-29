@@ -11,7 +11,10 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
-const artifactsParentDir = "artifacts"
+const (
+	artifactsParentDir = "artifacts"
+	hashFileName       = "sha256.txt"
+)
 
 // Build dates in several formats.
 var (
@@ -54,18 +57,29 @@ func Build(
 	os.RemoveAll(artifactsParentDir)
 
 	artifactList := []string{}
+	hashList := []string{}
 	errorList := []error{}
 
 	for _, target := range targets {
-		if path, err := buildArtifact(
+		if archivePath, archiveHash, err := buildArtifact(
 			packageName,
 			artifactName,
 			target,
 			versionLabels); err == nil {
-			artifactList = append(artifactList, path)
+			artifactList = append(artifactList, archivePath)
+			hashList = append(
+				hashList,
+				fmt.Sprintf("%s *%s", archiveHash, path.Base(archivePath)))
 		} else {
 			errorList = append(errorList, err)
 		}
+	}
+
+	hashFilePath := path.Join(artifactsParentDir, hashFileName)
+	if hashFile, err := os.Create(hashFilePath); err == nil {
+		defer hashFile.Close()
+		hashFile.WriteString(strings.Join(hashList, "\n"))
+		artifactList = append(artifactList, hashFilePath)
 	}
 
 	return artifactList, errorList
@@ -75,9 +89,8 @@ func buildArtifact(
 	packageName string,
 	artifactName string,
 	target TargetSpec,
-	versionLabels []string) (string, error) {
+	versionLabels []string) (string, string, error) {
 
-	// TODO include git ref info
 	targetLabels := append(versionLabels, target.Desc())
 	artifactDir, artifactFile := createArtifactSubdir(
 		packageName,
@@ -99,7 +112,7 @@ func buildArtifact(
 			"-o", artifactFile,
 			packageName},
 		target.Env()...); err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	return util.CreateArchive(target.archiveType, artifactDir)
