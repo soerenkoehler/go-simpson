@@ -55,6 +55,7 @@ func Build(
 	versionLabels []string) ([]string, []error) {
 
 	os.RemoveAll(artifactsParentDir)
+	os.Mkdir(artifactsParentDir, 0777)
 
 	artifactList := []string{}
 	hashList := []string{}
@@ -162,7 +163,7 @@ func createArtifactSubdir(
 
 	targetPath := path.Join(artifactsParentDir, targetDir)
 
-	os.MkdirAll(targetPath, 0777)
+	os.Mkdir(targetPath, 0777)
 
 	artifactDir, err := filepath.Abs(targetPath)
 	if err != nil {

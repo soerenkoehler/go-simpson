@@ -35,8 +35,8 @@ type commandLine struct {
 }
 
 func (cli commandLine) Validate() error {
-	if len(cli.Targets) == 0 && !cli.AllTargets {
-		return fmt.Errorf("requires one of: --all-targets, --targets")
+	if len(cli.Targets) == 0 && !cli.AllTargets && !cli.SkipUpload {
+		return fmt.Errorf("requires --skip-uploads or one of --all-targets, --targets")
 	}
 	return nil
 }
