@@ -50,7 +50,7 @@ func (cli commandLine) getTargets() []build.TargetSpec {
 	}
 	targets, unknown := build.GetTargets(cli.Targets)
 	if len(unknown) > 0 {
-		logInfo("Skipping unknown targets: %v", unknown)
+		logInfo("skipping unknown targets", unknown)
 	}
 	return targets
 }
@@ -82,11 +82,9 @@ func doMain() error {
 		githubContext.GetVersionLabels())
 
 	if len(errs) == 0 {
-		if githubContext.IsGithubAction() {
-			if cli.SkipUpload {
-				artifacts = []string{}
-				logInfo("found option --skip-upload: skipping artifact upload")
-			}
+		if cli.SkipUpload {
+			logInfo("found option --skip-upload: skipping artifact upload")
+		} else if githubContext.IsGithubAction() {
 			errs = githubContext.CreateRelease(artifacts, cli.Latest)
 		} else {
 			logInfo("missing Github action context: skipping release creation")
@@ -151,5 +149,9 @@ func logOutput(
 	category string,
 	message string,
 	params ...interface{}) {
-	fmt.Fprintf(output, "[%s] %s %v\n", category, message, params)
+	fmt.Fprintf(output, "[%s] %s", category, message)
+	if len(params) > 0 {
+		fmt.Fprint(output, ": ")
+	}
+	fmt.Fprintln(output, params...)
 }
