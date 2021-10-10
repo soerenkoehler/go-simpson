@@ -16,6 +16,9 @@ import (
 //go:embed resource/workflowfile.yml
 var workflowFileTemplate string
 
+//go:embed resource/Makefile
+var makefileTemplate string
+
 //go:embed resource/description.txt
 var _Description string
 
