@@ -11,6 +11,8 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
+const tagLatest = "latest"
+
 var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 
 type ReleaseInfo struct {
@@ -28,11 +30,12 @@ func (context Context) CreateRelease(
 		if version, ok := context.getPushVersion(); ok {
 			return context.uploadArtifacts(version, artifacts)
 		} else if doLatest && context.isPushHead() {
-			context.setTag("latest", context.Sha)
-			return context.uploadArtifacts("latest", artifacts)
+			context.setTag(tagLatest, context.Sha)
+			return context.uploadArtifacts(tagLatest, artifacts)
 		}
-		return []error{errors.New("Pushed neither version tag nor head ref")}
+		return []error{errors.New("pushed neither version tag nor head ref")}
 	}
+	//lint:ignore ST1005 Github is a proper noun
 	return []error{errors.New("Github API token not found")}
 }
 
@@ -49,7 +52,7 @@ func (context Context) uploadArtifacts(
 		}
 		return errs
 	}
-	return []error{fmt.Errorf("Release '%v' not found", releaseName)}
+	return []error{fmt.Errorf("release '%v' not found", releaseName)}
 }
 
 func (release ReleaseInfo) uploadArtifact(path string) error {
