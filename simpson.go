@@ -47,14 +47,14 @@ func (cli commandLine) getTargets() []build.TargetSpec {
 	}
 	targets, unknown := build.GetTargets(cli.Targets)
 	if len(unknown) > 0 {
-		fmt.Fprintf(os.Stderr, "Skipping unknown targets: %v\n", unknown)
+		logInfo("Skipping unknown targets: %v", unknown)
 	}
 	return targets
 }
 
 func main() {
 	if err := doMain(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		logError("", err)
 		os.Exit(1)
 	}
 }
@@ -82,22 +82,21 @@ func doMain() error {
 		if githubContext.IsGithubAction() {
 			if cli.SkipUpload {
 				artifacts = []string{}
-				fmt.Fprint(os.Stdout, "skipping release artifact upload\n")
+				logInfo("found option --skip-upload: skipping artifact upload", nil)
 			}
 			errs = githubContext.CreateRelease(artifacts, cli.Latest)
 		} else {
-			fmt.Fprint(
-				os.Stdout,
-				"no Github action context: skipping release creation\n")
+			logInfo("missing Github action context: skipping release creation", nil)
 		}
 	}
 
-	if len(errs) != 0 {
+	if len(errs) > 1 {
 		return fmt.Errorf("multiple errors: %v", errs)
+	} else if len(errs) == 1 {
+		return errs[0]
 	}
 
 	return nil
-
 }
 
 func initializeWorkflowFile() error {
@@ -134,4 +133,20 @@ func initializeWorkflowFile() error {
 				"SIMPSON_GOVERSION": goInfo[1]})))
 
 	return nil
+}
+
+func logInfo(message string, params interface{}) {
+	logOutput(os.Stdout, "INFO", message, params)
+}
+
+func logError(message string, params interface{}) {
+	logOutput(os.Stderr, "ERROR", message, params)
+}
+
+func logOutput(
+	output *os.File,
+	category string,
+	message string,
+	params interface{}) {
+	fmt.Fprintf(output, "[%s] %s %v\n", category, message, params)
 }
