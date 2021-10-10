@@ -85,11 +85,11 @@ func doMain() error {
 		if githubContext.IsGithubAction() {
 			if cli.SkipUpload {
 				artifacts = []string{}
-				logInfo("found option --skip-upload: skipping artifact upload", nil)
+				logInfo("found option --skip-upload: skipping artifact upload")
 			}
 			errs = githubContext.CreateRelease(artifacts, cli.Latest)
 		} else {
-			logInfo("missing Github action context: skipping release creation", nil)
+			logInfo("missing Github action context: skipping release creation")
 		}
 	}
 
@@ -138,18 +138,18 @@ func initializeWorkflowFile() error {
 	return nil
 }
 
-func logInfo(message string, params interface{}) {
-	logOutput(os.Stdout, "INFO", message, params)
+func logInfo(message string, params ...interface{}) {
+	logOutput(os.Stdout, "INFO", message, params...)
 }
 
-func logError(message string, params interface{}) {
-	logOutput(os.Stderr, "ERROR", message, params)
+func logError(message string, params ...interface{}) {
+	logOutput(os.Stderr, "ERROR", message, params...)
 }
 
 func logOutput(
 	output *os.File,
 	category string,
 	message string,
-	params interface{}) {
+	params ...interface{}) {
 	fmt.Fprintf(output, "[%s] %s %v\n", category, message, params)
 }
