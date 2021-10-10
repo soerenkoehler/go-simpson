@@ -42,7 +42,7 @@ func Test() error {
 	if err := util.Execute([]string{"go", "vet", "./..."}); err != nil {
 		return err
 	}
-	return util.Execute([]string{"go", "test", "./..."})
+	return util.Execute([]string{"go", "test", "--cover", "./..."})
 }
 
 // Build runs 'go build' for the named package and supplied target definitions.
