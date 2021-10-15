@@ -127,7 +127,7 @@ func initializeWorkflowFile() error {
 	defer output.Close()
 
 	output.Write([]byte(
-		util.ReplaceVariables(
+		util.ReplaceMultiple(
 			workflowFileTemplate,
 			map[string]string{
 				"SIMPSON_CMDLINE":   cmdline,

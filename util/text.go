@@ -4,13 +4,12 @@ import (
 	"bufio"
 	"os"
 	"regexp"
+	"strings"
 )
 
-func ReplaceVariables(text string, replacements map[string]string) string {
-	for k, v := range replacements {
-		if search, err := regexp.Compile(`\$\{` + k + `\}`); err == nil {
-			text = search.ReplaceAllString(text, v)
-		}
+func ReplaceMultiple(text string, replacements map[string]string) string {
+	for old, new := range replacements {
+		text = strings.ReplaceAll(text, old, new)
 	}
 	return text
 }
