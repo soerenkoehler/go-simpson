@@ -56,7 +56,7 @@ var (
 	targetWinAmd64 = TargetSpec{
 		os:                  "windows",
 		arch:                "amd64",
-		executableExtension: "exe",
+		executableExtension: ".exe",
 		archiveType:         util.ZIP}
 	targetLinuxAmd64 = TargetSpec{
 		os:                  "linux",

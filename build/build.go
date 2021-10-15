@@ -6,7 +6,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/soerenkoehler/simpson/util"
 )
@@ -16,25 +15,15 @@ const (
 	hashFileName       = "sha256.txt"
 )
 
-// Build dates in several formats.
-var (
-	buildDate      = time.Now().UTC()
-	buildDateLong  = buildDate.Format("2006.01.02-15:04:05")
-	buildDateShort = buildDate.Format("20060102-150405")
-	TokenBuildDate = "$BUILDDATE"
-)
-
 // TestAndBuild performs the standard build process.
 func TestAndBuild(
-	packageName string,
-	artifactName string,
-	targets []TargetSpec,
-	versionLabels []string) ([]string, []error) {
+	naming NamingSpec,
+	targets []TargetSpec) ([]string, []error) {
 
 	if err := Test(); err != nil {
 		return []string{}, []error{err}
 	}
-	return Build(packageName, artifactName, targets, versionLabels)
+	return Build(naming, targets)
 }
 
 // Test runs 'go test' for all packages in the current module.
@@ -49,10 +38,8 @@ func Test() error {
 // The resulting binary is stored in target specific subdirectories of the
 // directory 'artifacts'.
 func Build(
-	packageName string,
-	artifactName string,
-	targets []TargetSpec,
-	versionLabels []string) ([]string, []error) {
+	naming NamingSpec,
+	targets []TargetSpec) ([]string, []error) {
 
 	os.RemoveAll(artifactsParentDir)
 	os.Mkdir(artifactsParentDir, 0777)
@@ -62,11 +49,7 @@ func Build(
 	errorList := []error{}
 
 	for _, target := range targets {
-		archivePath, archiveHash, err := buildArtifact(
-			packageName,
-			artifactName,
-			target,
-			versionLabels)
+		archivePath, archiveHash, err := buildArtifact(naming, target)
 		if err == nil {
 			artifactList = append(artifactList, archivePath)
 			hashList = append(
@@ -110,17 +93,11 @@ func writeHashFile(hashList []string) (string, error) {
 }
 
 func buildArtifact(
-	packageName string,
-	artifactName string,
-	target TargetSpec,
-	versionLabels []string) (string, string, error) {
+	naming NamingSpec,
+	target TargetSpec) (string, string, error) {
 
-	targetLabels := append(versionLabels, target.Desc())
-	artifactDir, artifactFile := createArtifactSubdir(
-		packageName,
-		artifactName,
-		target,
-		targetLabels)
+	targetNaming := naming.WithTarget(target)
+	artifactDir, artifactFile := createArtifactSubdir(targetNaming)
 
 	if err := util.Execute(
 		[]string{
@@ -132,9 +109,9 @@ func buildArtifact(
 				// -w  omit DWARF
 				// -X  set string value
 				`-s -w -X "main._Version=%v"`,
-				formatTargetLabels(targetLabels, buildDateLong, " ")),
+				targetNaming.GetVersionInfo()),
 			"-o", artifactFile,
-			packageName},
+			targetNaming.packageName},
 		target.Env()...); err != nil {
 		return "", "", err
 	}
@@ -142,26 +119,9 @@ func buildArtifact(
 	return util.CreateArchive(target.archiveType, artifactDir)
 }
 
-func createArtifactSubdir(
-	packageName string,
-	artifactName string,
-	target TargetSpec,
-	targetLabels []string) (string, string) {
+func createArtifactSubdir(naming NamingSpec) (string, string) {
 
-	realPackageName := artifactName
-	if len(realPackageName) == 0 {
-		realPackageName = packageName
-		if packagePath, err := filepath.Abs(packageName); err == nil {
-			realPackageName = filepath.Base(packagePath)
-		}
-	}
-
-	targetDir := formatTargetLabels(
-		append([]string{realPackageName}, targetLabels...),
-		buildDateShort,
-		"-")
-
-	targetPath := path.Join(artifactsParentDir, targetDir)
+	targetPath := path.Join(artifactsParentDir, naming.GetArtifactName())
 
 	os.Mkdir(targetPath, 0777)
 
@@ -170,33 +130,5 @@ func createArtifactSubdir(
 		panic(err)
 	}
 
-	artifactFile := realPackageName
-	if len(artifactName) > 0 {
-		artifactFile = artifactName
-	}
-	if len(target.executableExtension) > 0 {
-		artifactFile += "." + target.executableExtension
-	}
-
-	return artifactDir, path.Join(artifactDir, artifactFile)
-}
-
-func formatTargetLabels(
-	targetLabels []string,
-	date string,
-	separator string) string {
-
-	result := []string{}
-	for _, label := range targetLabels {
-		result = append(result, replaceBuildDate(label, date))
-	}
-
-	return strings.Join(result, separator)
-}
-
-func replaceBuildDate(label string, date string) string {
-	if label == TokenBuildDate {
-		return date
-	}
-	return label
+	return artifactDir, path.Join(artifactDir, naming.GetArtifactFile())
 }

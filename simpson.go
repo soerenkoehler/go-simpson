@@ -16,9 +16,6 @@ import (
 //go:embed resource/workflowfile.yml
 var workflowFileTemplate string
 
-//go:embed resource/Makefile
-var makefileTemplate string
-
 //go:embed resource/description.txt
 var _Description string
 
@@ -31,7 +28,8 @@ type commandLine struct {
 	AllTargets bool     `name:"all-targets" short:"a" xor:"targets" help:"Build all possible targets"`
 	Targets    []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets."`
 
-	Latest     bool `name:"latest" short:"l" help:"Tags the latest commit and creates a release named 'latest'."`
+	// TODO option 'latest' may not be necessary => switch by Github context
+	// Latest     bool `name:"latest" short:"l" help:"Tags the latest commit and creates a release named 'latest'."`
 	SkipUpload bool `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
 
 	Init bool `name:"init" short:"i" help:"Creates a Github Action file using the current commandline."`
@@ -75,17 +73,18 @@ func doMain() error {
 
 	githubContext := github.NewDefaultContext()
 
-	artifacts, errs := build.TestAndBuild(
-		cli.Package,
-		cli.ArtifactName,
-		cli.getTargets(),
-		githubContext.GetVersionLabels())
+	_, errs := build.TestAndBuild(
+		githubContext.GetNaming(
+			build.NewNamingSpec(
+				cli.Package,
+				cli.ArtifactName)),
+		cli.getTargets())
 
 	if len(errs) == 0 {
 		if cli.SkipUpload {
 			logInfo("found option --skip-upload: skipping artifact upload")
 		} else if githubContext.IsGithubAction() {
-			errs = githubContext.CreateRelease(artifacts, cli.Latest)
+			// errs = githubContext.CreateRelease(artifacts, cli.Latest) // TODO
 		} else {
 			logInfo("missing Github action context: skipping release creation")
 		}
