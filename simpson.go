@@ -70,10 +70,13 @@ func doMain() error {
 		cli.getTargets())
 
 	if len(errs) == 0 {
-		if cli.SkipUpload {
-			logInfo("found option --skip-upload: skipping artifact upload")
-		} else if githubContext.IsGithubAction() {
-			errs = githubContext.CreateRelease(artifacts) // TODO
+		if githubContext.IsGithubAction() {
+			if cli.SkipUpload {
+				logInfo("found option --skip-upload: skipping artifact upload")
+				errs = githubContext.CreateRelease([]string{}) // TODO
+			} else {
+				errs = githubContext.CreateRelease(artifacts) // TODO
+			}
 		} else {
 			logInfo("missing Github action context: skipping release creation")
 		}

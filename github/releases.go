@@ -23,35 +23,22 @@ type ReleaseInfo struct {
 }
 
 func (context Context) CreateRelease(artifacts []string) []error {
+	var errs []error
+
 	if len(context.Token) == 0 {
 		//lint:ignore ST1005 Github is a proper noun
-		return []error{errors.New("Github API token not found")}
-	}
-
-	if version, ok := context.getPushVersion(); ok {
-		return context.uploadArtifacts(version, artifacts)
-	} else if context.isPushHead() {
-		context.setTag(tagLatest, context.Sha)
-		return context.uploadArtifacts(tagLatest, artifacts)
-	}
-
-	return []error{errors.New("pushed neither version tag nor head ref")}
-}
-
-func (context Context) uploadArtifacts(
-	releaseName string,
-	artifacts []string) []error {
-
-	if release, err := context.getRelease(releaseName); err == nil {
-		var errs []error
+		errs = append(errs, errors.New("Github API token not found"))
+	} else if release, err := context.getRelease(); err != nil {
+		errs = append(errs, err)
+	} else {
 		for _, artifact := range artifacts {
 			if err := release.uploadArtifact(artifact); err != nil {
 				errs = append(errs, err)
 			}
 		}
-		return errs
 	}
-	return []error{fmt.Errorf("release '%v' not found", releaseName)}
+
+	return errs
 }
 
 func (release ReleaseInfo) uploadArtifact(path string) error {
@@ -65,7 +52,17 @@ func (release ReleaseInfo) uploadArtifact(path string) error {
 	return err
 }
 
-func (context Context) getRelease(tag string) (ReleaseInfo, error) {
+func (context Context) getRelease() (ReleaseInfo, error) {
+
+	tag := ""
+	if version, ok := context.getPushVersion(); ok {
+		tag = version
+	} else if context.isPushHead() {
+		context.setTag(tagLatest, context.Sha)
+		tag = tagLatest
+	} else {
+		return ReleaseInfo{}, errors.New("pushed neither version tag nor head ref")
+	}
 
 	release, err := context.getReleaseByTag(tag)
 
