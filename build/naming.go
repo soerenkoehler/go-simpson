@@ -31,7 +31,7 @@ func NewNamingSpec(
 	return NamingSpec{
 		packageName:         packageName,
 		artifactBaseName:    artifactBaseName,
-		nameParts:           []string{TokenBuildDate},
+		nameParts:           []string{TokenArtifactName, TokenBuildDate},
 		executableExtension: ""}
 }
 
@@ -48,18 +48,21 @@ func (naming NamingSpec) GetArtifactName() string {
 		strings.Join(naming.nameParts, "-"),
 		map[string]string{
 			TokenBuildDate:    buildDateShort,
-			TokenArtifactName: naming.artifactBaseName})
+			TokenArtifactName: naming.resolveArtifactName()})
 }
 
 func (naming NamingSpec) GetArtifactFile() string {
-	filename := naming.artifactBaseName
-	if len(filename) == 0 {
-		filename = naming.packageName
-		if packagePath, err := filepath.Abs(naming.packageName); err == nil {
-			filename = filepath.Base(packagePath)
-		}
+	return naming.resolveArtifactName() + naming.executableExtension
+}
+
+func (naming NamingSpec) resolveArtifactName() string {
+	if len(naming.artifactBaseName) > 0 {
+		return naming.artifactBaseName
 	}
-	return filename + naming.executableExtension
+	if packagePath, err := filepath.Abs(naming.packageName); err == nil {
+		return filepath.Base(packagePath)
+	}
+	return naming.packageName
 }
 
 func (naming NamingSpec) WithTarget(target TargetSpec) NamingSpec {

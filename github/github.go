@@ -41,9 +41,11 @@ func (context Context) IsGithubAction() bool {
 func (context Context) GetNaming(naming build.NamingSpec) build.NamingSpec {
 	if pushVersion, ok := context.getPushVersion(); ok {
 		return naming.WithNameParts([]string{
+			build.TokenArtifactName,
 			pushVersion})
 	} else if context.isPushHead() {
 		return naming.WithNameParts([]string{
+			build.TokenArtifactName,
 			build.TokenBuildDate,
 			context.Sha[0:8]})
 	}
