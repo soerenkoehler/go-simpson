@@ -80,7 +80,11 @@ func doMain() error {
 	}
 
 	if len(errs) > 1 {
-		return fmt.Errorf("multiple errors: %v", errs)
+		msgs := make([]string, 0, len(errs))
+		for _, err := range errs {
+			msgs = append(msgs, err.Error())
+		}
+		return fmt.Errorf("multiple errors:\n%s", strings.Join(msgs, "\n"))
 	} else if len(errs) == 1 {
 		return errs[0]
 	}
