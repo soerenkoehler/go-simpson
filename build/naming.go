@@ -28,13 +28,8 @@ func NewNamingSpec(
 	packageName string,
 	artifactBaseName string) NamingSpec {
 
-	realPackageName := packageName
-	if packagePath, err := filepath.Abs(packageName); err == nil {
-		realPackageName = filepath.Base(packagePath)
-	}
-
 	return NamingSpec{
-		packageName:         realPackageName,
+		packageName:         packageName,
 		artifactBaseName:    artifactBaseName,
 		nameParts:           []string{TokenBuildDate},
 		executableExtension: ""}
@@ -57,9 +52,12 @@ func (naming NamingSpec) GetArtifactName() string {
 }
 
 func (naming NamingSpec) GetArtifactFile() string {
-	filename := naming.packageName
-	if len(naming.artifactBaseName) > 0 {
-		filename = naming.artifactBaseName
+	filename := naming.artifactBaseName
+	if len(filename) == 0 {
+		filename = naming.packageName
+		if packagePath, err := filepath.Abs(naming.packageName); err == nil {
+			filename = filepath.Base(packagePath)
+		}
 	}
 	return filename + naming.executableExtension
 }
