@@ -26,4 +26,5 @@ jobs:
 
       - name: Build
         run: |
-          make
+          go install github.com/soerenkoehler/simpson@main
+          go run github.com/soerenkoehler/simpson ${SIMPSON_CMDLINE}

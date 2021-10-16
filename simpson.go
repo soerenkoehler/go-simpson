@@ -129,8 +129,8 @@ func initializeWorkflowFile() error {
 		util.ReplaceMultiple(
 			workflowFileTemplate,
 			map[string]string{
-				"SIMPSON_CMDLINE":   cmdline,
-				"SIMPSON_GOVERSION": goInfo[1]})))
+				"${SIMPSON_CMDLINE}":   cmdline,
+				"${SIMPSON_GOVERSION}": goInfo[1]})))
 
 	return nil
 }
