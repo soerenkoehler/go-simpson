@@ -22,21 +22,20 @@ type ReleaseInfo struct {
 	UploadURL string `json:"upload_url"`
 }
 
-func (context Context) CreateRelease(
-	artifacts []string,
-	doLatest bool) []error {
-
-	if len(context.Token) > 0 {
-		if version, ok := context.getPushVersion(); ok {
-			return context.uploadArtifacts(version, artifacts)
-		} else if doLatest && context.isPushHead() {
-			context.setTag(tagLatest, context.Sha)
-			return context.uploadArtifacts(tagLatest, artifacts)
-		}
-		return []error{errors.New("pushed neither version tag nor head ref")}
+func (context Context) CreateRelease(artifacts []string) []error {
+	if len(context.Token) == 0 {
+		//lint:ignore ST1005 Github is a proper noun
+		return []error{errors.New("Github API token not found")}
 	}
-	//lint:ignore ST1005 Github is a proper noun
-	return []error{errors.New("Github API token not found")}
+
+	if version, ok := context.getPushVersion(); ok {
+		return context.uploadArtifacts(version, artifacts)
+	} else if context.isPushHead() {
+		context.setTag(tagLatest, context.Sha)
+		return context.uploadArtifacts(tagLatest, artifacts)
+	}
+
+	return []error{errors.New("pushed neither version tag nor head ref")}
 }
 
 func (context Context) uploadArtifacts(

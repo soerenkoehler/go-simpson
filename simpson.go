@@ -22,28 +22,17 @@ var _Description string
 var _Version = "DEV"
 
 type commandLine struct {
-	Package      string `arg:"" default:"." help:"The package to compile. Default: '.'"`
-	ArtifactName string `name:"artifact-name" help:"An alternate base name for the artifact files."`
+	Package string `arg:"" default:"." help:"The package to compile. Default: '.'"`
 
-	AllTargets bool     `name:"all-targets" short:"a" xor:"targets" help:"Build all possible targets"`
-	Targets    []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets."`
-
-	// TODO option 'latest' may not be necessary => switch by Github context
-	// Latest     bool `name:"latest" short:"l" help:"Tags the latest commit and creates a release named 'latest'."`
-	SkipUpload bool `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
+	ArtifactName string   `name:"artifact-name" help:"An alternate base name for the artifact files."`
+	Targets      []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets."`
+	SkipUpload   bool     `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
 
 	Init bool `name:"init" short:"i" help:"Creates a Github Action file using the current commandline."`
 }
 
-func (cli commandLine) Validate() error {
-	if len(cli.Targets) == 0 && !cli.AllTargets && !cli.SkipUpload {
-		return fmt.Errorf("requires --skip-upload or one of --all-targets, --targets")
-	}
-	return nil
-}
-
 func (cli commandLine) getTargets() []build.TargetSpec {
-	if cli.AllTargets {
+	if len(cli.Targets) == 0 {
 		return build.AllTargets
 	}
 	targets, unknown := build.GetTargets(cli.Targets)
@@ -73,7 +62,7 @@ func doMain() error {
 
 	githubContext := github.NewDefaultContext()
 
-	_, errs := build.TestAndBuild(
+	artifacts, errs := build.TestAndBuild(
 		githubContext.GetNaming(
 			build.NewNamingSpec(
 				cli.Package,
@@ -84,7 +73,7 @@ func doMain() error {
 		if cli.SkipUpload {
 			logInfo("found option --skip-upload: skipping artifact upload")
 		} else if githubContext.IsGithubAction() {
-			// errs = githubContext.CreateRelease(artifacts, cli.Latest) // TODO
+			errs = githubContext.CreateRelease(artifacts) // TODO
 		} else {
 			logInfo("missing Github action context: skipping release creation")
 		}
