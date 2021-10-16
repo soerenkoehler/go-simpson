@@ -22,39 +22,29 @@ var _Description string
 var _Version = "DEV"
 
 type commandLine struct {
-	Package      string `arg:"" default:"." help:"The package to compile. Default: '.'"`
-	ArtifactName string `name:"artifact-name" help:"An alternate base name for the artifact files."`
+	Package string `arg:"" default:"." help:"The package to compile. Default: '.'"`
 
-	AllTargets bool     `name:"all-targets" short:"a" xor:"targets" help:"Build all possible targets"`
-	Targets    []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets."`
-
-	Latest     bool `name:"latest" short:"l" help:"Tags the latest commit and creates a release named 'latest'."`
-	SkipUpload bool `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
+	ArtifactName string   `name:"artifact-name" help:"An alternate base name for the artifact files."`
+	Targets      []string `name:"targets" short:"t" xor:"targets" help:"Build the given targets."`
+	SkipUpload   bool     `name:"skip-upload" short:"" help:"Build artifacts but do not upload them to the release."`
 
 	Init bool `name:"init" short:"i" help:"Creates a Github Action file using the current commandline."`
 }
 
-func (cli commandLine) Validate() error {
-	if len(cli.Targets) == 0 && !cli.AllTargets && !cli.SkipUpload {
-		return fmt.Errorf("requires --skip-upload or one of --all-targets, --targets")
-	}
-	return nil
-}
-
 func (cli commandLine) getTargets() []build.TargetSpec {
-	if cli.AllTargets {
+	if len(cli.Targets) == 0 {
 		return build.AllTargets
 	}
 	targets, unknown := build.GetTargets(cli.Targets)
 	if len(unknown) > 0 {
-		fmt.Fprintf(os.Stderr, "Skipping unknown targets: %v\n", unknown)
+		logInfo("skipping unknown targets", unknown)
 	}
 	return targets
 }
 
 func main() {
 	if err := doMain(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		logError("", err)
 		os.Exit(1)
 	}
 }
@@ -73,31 +63,36 @@ func doMain() error {
 	githubContext := github.NewDefaultContext()
 
 	artifacts, errs := build.TestAndBuild(
-		cli.Package,
-		cli.ArtifactName,
-		cli.getTargets(),
-		githubContext.GetVersionLabels())
+		githubContext.GetNaming(
+			build.NewNamingSpec(
+				cli.Package,
+				cli.ArtifactName)),
+		cli.getTargets())
 
 	if len(errs) == 0 {
 		if githubContext.IsGithubAction() {
 			if cli.SkipUpload {
-				artifacts = []string{}
-				fmt.Fprint(os.Stdout, "skipping release artifact upload\n")
+				logInfo("found option --skip-upload: skipping artifact upload")
+				errs = githubContext.CreateRelease([]string{}) // TODO
+			} else {
+				errs = githubContext.CreateRelease(artifacts) // TODO
 			}
-			errs = githubContext.CreateRelease(artifacts, cli.Latest)
 		} else {
-			fmt.Fprint(
-				os.Stdout,
-				"no Github action context: skipping release creation\n")
+			logInfo("missing Github action context: skipping release creation")
 		}
 	}
 
-	if len(errs) != 0 {
-		return fmt.Errorf("multiple errors: %v", errs)
+	if len(errs) > 1 {
+		msgs := make([]string, 0, len(errs))
+		for _, err := range errs {
+			msgs = append(msgs, err.Error())
+		}
+		return fmt.Errorf("multiple errors:\n%s", strings.Join(msgs, "\n"))
+	} else if len(errs) == 1 {
+		return errs[0]
 	}
 
 	return nil
-
 }
 
 func initializeWorkflowFile() error {
@@ -127,11 +122,31 @@ func initializeWorkflowFile() error {
 	defer output.Close()
 
 	output.Write([]byte(
-		util.ReplaceVariables(
+		util.ReplaceMultiple(
 			workflowFileTemplate,
 			map[string]string{
-				"SIMPSON_CMDLINE":   cmdline,
-				"SIMPSON_GOVERSION": goInfo[1]})))
+				"${SIMPSON_CMDLINE}":   cmdline,
+				"${SIMPSON_GOVERSION}": goInfo[1]})))
 
 	return nil
+}
+
+func logInfo(message string, params ...interface{}) {
+	logOutput(os.Stdout, "INFO", message, params...)
+}
+
+func logError(message string, params ...interface{}) {
+	logOutput(os.Stderr, "ERROR", message, params...)
+}
+
+func logOutput(
+	output *os.File,
+	category string,
+	message string,
+	params ...interface{}) {
+	fmt.Fprintf(output, "[%s] %s", category, message)
+	if len(params) > 0 {
+		fmt.Fprint(output, ": ")
+	}
+	fmt.Fprintln(output, params...)
 }

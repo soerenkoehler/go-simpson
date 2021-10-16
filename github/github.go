@@ -38,13 +38,18 @@ func (context Context) IsGithubAction() bool {
 	return len(context.Token) > 0
 }
 
-func (context Context) GetVersionLabels() []string {
+func (context Context) GetNaming(naming build.NamingSpec) build.NamingSpec {
 	if pushVersion, ok := context.getPushVersion(); ok {
-		return []string{pushVersion}
+		return naming.WithNameParts([]string{
+			build.TokenArtifactName,
+			pushVersion})
 	} else if context.isPushHead() {
-		return []string{build.TokenBuildDate, context.Sha[0:8]}
+		return naming.WithNameParts([]string{
+			build.TokenArtifactName,
+			build.TokenBuildDate,
+			context.Sha[0:8]})
 	}
-	return []string{build.TokenBuildDate}
+	return naming
 }
 
 func (context Context) getPushVersion() (string, bool) {

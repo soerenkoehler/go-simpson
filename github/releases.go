@@ -11,6 +11,8 @@ import (
 	"github.com/soerenkoehler/simpson/util"
 )
 
+const tagLatest = "latest"
+
 var uploadURLNormalizer = regexp.MustCompile(`\{\?[\w,]+\}$`)
 
 type ReleaseInfo struct {
@@ -20,36 +22,23 @@ type ReleaseInfo struct {
 	UploadURL string `json:"upload_url"`
 }
 
-func (context Context) CreateRelease(
-	artifacts []string,
-	doLatest bool) []error {
+func (context Context) CreateRelease(artifacts []string) []error {
+	var errs []error
 
-	if len(context.Token) > 0 {
-		if version, ok := context.getPushVersion(); ok {
-			return context.uploadArtifacts(version, artifacts)
-		} else if doLatest && context.isPushHead() {
-			context.setTag("latest", context.Sha)
-			return context.uploadArtifacts("latest", artifacts)
-		}
-		return []error{errors.New("Pushed neither version tag nor head ref")}
-	}
-	return []error{errors.New("Github API token not found")}
-}
-
-func (context Context) uploadArtifacts(
-	releaseName string,
-	artifacts []string) []error {
-
-	if release, err := context.getRelease(releaseName); err == nil {
-		var errs []error
+	if len(context.Token) == 0 {
+		//lint:ignore ST1005 Github is a proper noun
+		errs = append(errs, errors.New("Github API token not found"))
+	} else if release, err := context.getRelease(); err != nil {
+		errs = append(errs, err)
+	} else {
 		for _, artifact := range artifacts {
 			if err := release.uploadArtifact(artifact); err != nil {
 				errs = append(errs, err)
 			}
 		}
-		return errs
 	}
-	return []error{fmt.Errorf("Release '%v' not found", releaseName)}
+
+	return errs
 }
 
 func (release ReleaseInfo) uploadArtifact(path string) error {
@@ -63,7 +52,17 @@ func (release ReleaseInfo) uploadArtifact(path string) error {
 	return err
 }
 
-func (context Context) getRelease(tag string) (ReleaseInfo, error) {
+func (context Context) getRelease() (ReleaseInfo, error) {
+
+	tag := ""
+	if version, ok := context.getPushVersion(); ok {
+		tag = version
+	} else if context.isPushHead() {
+		context.setTag(tagLatest, context.Sha)
+		tag = tagLatest
+	} else {
+		return ReleaseInfo{}, errors.New("pushed neither version tag nor head ref")
+	}
 
 	release, err := context.getReleaseByTag(tag)
 
