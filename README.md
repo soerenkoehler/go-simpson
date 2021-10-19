@@ -1,148 +1,122 @@
 Simpson
 =======
 
-Simpson is a **B**uild **A**nd **R**elease **T**ool for Go on Github. It runs
+*Simpson* is a **B**uild **A**nd **R**elease **T**ool for Go on Github. It runs
 in a shell script task of a Github Action.
 
 Features
 --------
 
 *   local and CI builds from the same tool
-*   multi platform builds
 *   automatic latest release
 *   manually triggered tagged releases
+*   multi platform builds
 *   creating archives depending on target platform:
     *   Windows: zip
     *   Linux: tgz
-*   create sha256-digests of generated release artifacts
+*   create sha256-digests of generated artifacts
 
 Usage
 -----
 
-### Local ###
+### Local Build ###
 
-TODO: https://pkg.go.dev/cmd/go#hdr-Compile_and_install_packages_and_dependencies  
-TODO: `go install`
+1.  Install *Simpson*
+    ```
+    go install github.com/soerenkoehler/simpson@main
+    ```
 
-*   For a local build execute the following in your module workspace:
+    You may replace `@main` with a different version if desired. But you
+    must provide a tag or branch name - otherwise you will clutter your
+    `go.mod` file (ref. [Documentation of `go install`][go-docs-install]).
 
+2. Execute *Simpson*
     ```
     go run github.com/soerenkoehler/simpson [MAINPACKAGE] [OPTIONS...]
     ```
 
-    The local build creates a directory `artifacts` where it places the build
-    artifacts (as well in sub directories and compressed archives). The
-    artifacts names will contain date, time and target platform.
+    The local build runs:
+    *   `go vet` & `go test` for all packages in your module
+    *   `go build` for the given main package
 
-    Since there is no Github Actions context, Simpson will skip release related
-    tasks.
+    It then creates:
+    *   a directory `artifacts`
+    *   artifact directories and archive files for all specified targets
+    *   a SHA256 file with checksums for all archives
 
-*   To prepare a workflow file for Github Actions add the option `--init`:
+### Github Build ###
+
+1.  Prepare the workflow file
+    
+    Invoke *Simpson* locally and add the option `--init`:
+
     ```
     go run github.com/soerenkoehler/simpson [MAINPACKAGE] [OPTIONS...] --init
     ```
 
-*   `go run` should normally request the most recent release version. But if
-    your Go module cache already contains an older (or wrong) version you may
-    consider using `go get` to fetch the latest (or a specific) version.
+    This will create a Github workflow file which will call *Simpson* in a
+    Github action to build and release your module.
+
+    The current workflow template file runs Go with `GOPROXY=direct`. If you do
+    not want this, feel free to edit the workflow file.
+
+2.  Push a branch containing the workflow file to Github. *Simpson* will run and
+    create a release `latest`.
+
+    **Warning:** The tag `latest` will change with every push. While fetching or
+    pulling tags your local Git client will fail with the error:
+
     ```
-    go get -u github.com/soerenkoehler/simpson@main
-    go get -u github.com/soerenkoehler/simpson@<VERSION>
+    ! [rejected] latest -> latest (would clobber existing tag)
     ```
 
-*   Running Simpson will modify your `go.mod` and `go.sum` files. So you should
-    run `go mod tidy` from time to time.
+    On the commandline you must add the option `-f` to update the changed tags:
+    ```
+    git fetch --tags -f
+    git pull --tags -f
+    ```
 
-### On Github ###
+    Your IDE may automagically try to pull or fetch tags in the background when
+    synchronizing your local repository. You should switch off such behaviour
+    and fetch tags manually:
 
-Once you have created and pushed a workflow file, Simpson will build releases on
-pushes to Github:
+    *   In VSCode change the setting `git.pullTags` to `false`.
+    *   In other IDEs consult your friendly IDE manual.
 
-*   When using option `--latest`, updating branch heads creates a _latest
-    release_.
-*   Pushing tags with a semantic version number `v<MAJOR>.<MINOR.<PATCH>`
-    creates a release with that version number. Conveniently, this happens also,
-    when manually creating a release in the Github webapp.
+3.  Push a tag in the semver format `v<MAJOR>.<MINOR>.<PATCH>` (or create it in
+    the Github UI). *Simpson* will run and create a release for this tag.
 
-### Artifact Version and Naming ###
+### Options ###
 
-If MAINPACKAGE is not provided the basename of the current directory `./.` will
-be used.
+*   If MAINPACKAGE is omitted the current directory `.` will be used.
 
-Release Type    | Artifact Name
-----------------|-------------------------------------
-Local           | MAINPACKAGE-DATE-TIME-PLATFORM
-Workflow Latest | MAINPACKAGE-DATE-TIME-HASH-PLATFORM
-Workflow Named  | MAINPACKAGE-VERSION
+*   `--artifact-name NAME` Changes the package name part of the created
+    artifacts.
 
-Simpson also injects the version string as `main._Version` into the build.
+*   `--targets TARGET-SPEC, ...` Specifies the target platforms to build.
+    Currently supported are:
 
-### General Options ###
+    *   windows-amd64
+    *   linux-amd64
+    *   linux-arm64
+    *   linux-arm
 
-```
--i, --init
-```
+*   `--skip-upload` Suppresses the artifact upload (e.g. if you build a library
+     which will be imported rather than an application executable).
 
-Creates (or replaces) the file
-`.github/workflows/simpson-build-and-release-tool.yml` with the given Simpson
-options except `--init`.
+*   `--init` Creates (or replaces) a Github workflow file with the given options
+    except `--init` itself.
 
-The current workflow template file runs Go with `GOPROXY=direct`. If you do not
-want this, feel free to edit the workflow file.
+### Artifact Naming ###
 
-### Build Options ###
+Artifacts will be named as follows:
 
-```
--t, --targets TARGET-SPEC,...
-```
+Release Type  | Artifact Name
+--------------|-------------------------------------
+Local         | MAINPACKAGE-DATE-TIME-PLATFORM
+Github Latest | MAINPACKAGE-DATE-TIME-HASH-PLATFORM
+Github Named  | MAINPACKAGE-VERSION
 
-`TARGET-SPEC,...` is a comma delimited list of target platforms. Currently
-supported are:
+*Simpson* also injects the version string as `main._Version` into the build.
 
-*   windows-amd64
-*   linux-amd64
-*   linux-arm64
-*   linux-arm
-
-```
--a, --all-targets
-```
-
-Shortcut to build all supported targets.
-
-### Release Options ###
-
-```
--l, --latest
-```
-
-When this option is given and the Github Action is triggered by a push onto a
-branch head, Simpson will tag, build and create a release named `latest`.
-
-**Warning:** The tag `latest` will change with every push. While fetching or
-pulling tags your local Git client will fail with the error:
-
-```
-! [rejected] latest -> latest (would clobber existing tag)
-```
-
-On the commandline you must add the option `-f` to update the changed tags:
-```
-git fetch --tags -f
-git pull --tags -f
-```
-
-Your IDE may automagically try to pull or fetch tags in the background when
-synchronizing your local repository. When using the option `--latest` you should
-switch off such behaviour and fetch tags manually when required:
-
-*   In VSCode change the setting `git.pullTags` to `false`.
-*   In other IDEs consult your friendly IDE manual.
-
-```
---skip-upload
-```
-
-Add this option if you want to run `go vet`, `go test` and `go build` but you do
-not need the created binary artifacts. When you use `--skip-upload` you may omit
-both `--targets` and `--all-targets`
+[go-docs-install]: https://pkg.go.dev/cmd/go#hdr-Compile_and_install_packages_and_dependencies
