@@ -19,40 +19,36 @@ Features
 Usage
 -----
 
+### Invocation and Module Aware Mode ###
+
+You run *Simpson* like this:
+
+```
+go run github.com/soerenkoehler/simpson@main [MAINPACKAGE] [OPTIONS...]
+```
+
+You may replace `@main` with a different version if desired. But you must
+provide a version to run in module aware mode (ref. [Documentation of `go
+run`][go-docs-run]).
+
 ### Local Build ###
 
-1.  Install *Simpson*
-    ```
-    go install github.com/soerenkoehler/simpson@main
-    ```
+Just run *Simpson* **without** the option `--init`. Then the following Go
+commands will run:
 
-    You may replace `@main` with a different version if desired. But you
-    must provide a tag or branch name - otherwise you will clutter your
-    `go.mod` file (ref. [Documentation of `go install`][go-docs-install]).
+*   `go vet` & `go test` for all packages in your module
+*   `go build` for the given main package
 
-2. Execute *Simpson*
-    ```
-    go run github.com/soerenkoehler/simpson [MAINPACKAGE] [OPTIONS...]
-    ```
+*Simpson* then creates a directory `artifacts` with:
 
-    The local build runs:
-    *   `go vet` & `go test` for all packages in your module
-    *   `go build` for the given main package
-
-    It then creates:
-    *   a directory `artifacts`
-    *   artifact directories and archive files for all specified targets
-    *   a SHA256 file with checksums for all archives
+*   artifact directories and archive files for all specified targets
+*   a SHA256 file with checksums for all archives
 
 ### Github Build ###
 
 1.  Prepare the workflow file
     
-    Invoke *Simpson* locally and add the option `--init`:
-
-    ```
-    go run github.com/soerenkoehler/simpson [MAINPACKAGE] [OPTIONS...] --init
-    ```
+    Run *Simpson* locally **with** option `--init`:
 
     This will create a Github workflow file which will call *Simpson* in a
     Github action to build and release your module.
@@ -119,4 +115,4 @@ Github Named  | MAINPACKAGE-VERSION
 
 *Simpson* also injects the version string as `main._Version` into the build.
 
-[go-docs-install]: https://pkg.go.dev/cmd/go#hdr-Compile_and_install_packages_and_dependencies
+[go-docs-run]: https://pkg.go.dev/cmd/go#hdr-Compile_and_run_Go_program

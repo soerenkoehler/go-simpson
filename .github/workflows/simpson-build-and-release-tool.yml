@@ -26,5 +26,4 @@ jobs:
 
       - name: Build
         run: |
-          go install github.com/soerenkoehler/simpson@main
-          go run github.com/soerenkoehler/simpson --skip-upload
+          go run github.com/soerenkoehler/simpson@main --skip-upload
