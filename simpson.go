@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/soerenkoehler/simpson/build"
-	"github.com/soerenkoehler/simpson/github"
-	"github.com/soerenkoehler/simpson/util"
+	"github.com/soerenkoehler/go-simpson/build"
+	"github.com/soerenkoehler/go-simpson/github"
+	"github.com/soerenkoehler/go-simpson/util"
 )
 
 //go:embed resource/workflowfile.yml
