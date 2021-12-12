@@ -123,3 +123,4 @@ Github Named  | MAINPACKAGE-VERSION
 *Simpson* also injects the version string as `main._Version` into the build.
 
 [go-docs-run]: https://pkg.go.dev/cmd/go#hdr-Compile_and_run_Go_program
+
