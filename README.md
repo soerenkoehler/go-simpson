@@ -4,17 +4,24 @@ Simpson
 *Simpson* is a **B**uild **A**nd **R**elease **T**ool for Go on Github. It runs
 in a shell script task of a Github Action.
 
-Features
---------
+What Simpson Will Do
+--------------------
 
-*   local and CI builds from the same tool
-*   automatic latest release
-*   manually triggered tagged releases
+*   with the same command build executable artifacts locally and on CI pipeline
+    (currently: Github only)
+*   create a latest release when running in a CI pipeline
+*   create a tagged releases when pushing a version tag
 *   multi platform builds
 *   creating archives depending on target platform:
     *   Windows: zip
     *   Linux: tgz
 *   create sha256-digests of generated artifacts
+
+What Simpson Won't Do
+---------------------
+
+*   build pure libraries (aka collections of packages that don't have any executable part)
+*   support CGO (For this you may have a look at XGO and its forks.)
 
 Usage
 -----
