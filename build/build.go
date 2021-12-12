@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/soerenkoehler/simpson/util"
+	"github.com/soerenkoehler/go-simpson/util"
 )
 
 const (

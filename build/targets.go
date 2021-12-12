@@ -3,7 +3,7 @@ package build
 import (
 	"fmt"
 
-	"github.com/soerenkoehler/simpson/util"
+	"github.com/soerenkoehler/go-simpson/util"
 )
 
 type TargetSpec struct {

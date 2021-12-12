@@ -1,3 +1,3 @@
 BaRT (Build and Release Tool) ${VERSION}
 
-See detailed documentation under: https://github.com/soerenkoehler/simpson/
+See detailed documentation under: https://github.com/soerenkoehler/go-simpson/

@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/soerenkoehler/simpson/build"
-	"github.com/soerenkoehler/simpson/util"
+	"github.com/soerenkoehler/go-simpson/build"
+	"github.com/soerenkoehler/go-simpson/util"
 )
 
 var pushVersionExtractor = regexp.MustCompile(`^refs/tags/(v\d+\.\d+\.\d+)`)

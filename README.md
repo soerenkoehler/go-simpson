@@ -31,7 +31,7 @@ Usage
 You run *Simpson* like this:
 
 ```
-go run github.com/soerenkoehler/simpson@main [MAINPACKAGE] [OPTIONS...]
+go run github.com/soerenkoehler/go-simpson@main [MAINPACKAGE] [OPTIONS...]
 ```
 
 You may replace `@main` with a different version if desired. But you must

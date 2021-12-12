@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/soerenkoehler/simpson/util"
+	"github.com/soerenkoehler/go-simpson/util"
 )
 
 const tagLatest = "latest"
