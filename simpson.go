@@ -96,14 +96,9 @@ func doMain() error {
 }
 
 func initializeWorkflowFile() error {
-	workflowFile := ".github/workflows/simpson-build-and-release-tool.yml"
+	workflowFile := ".github/workflows/go-simpson-build.yml"
 
 	goInfo := util.FindInFile("go.mod", `^\s*go\s+(.+)$`)
-
-	cmdline := strings.ReplaceAll(
-		strings.Join(os.Args[1:], " "),
-		" --init",
-		"")
 
 	if len(goInfo) < 1 {
 		return fmt.Errorf("go.mod: no go version found")
@@ -125,10 +120,29 @@ func initializeWorkflowFile() error {
 		util.ReplaceMultiple(
 			workflowFileTemplate,
 			map[string]string{
-				"${SIMPSON_CMDLINE}":   cmdline,
+				"${SIMPSON_CMDLINE}":   filterCommandLine("--init"),
 				"${SIMPSON_GOVERSION}": goInfo[1]})))
 
 	return nil
+}
+
+func filterCommandLine(excluded ...string) string {
+	args := make([]string, 0, len(os.Args))
+	for _, arg := range os.Args[1:] {
+		if !isExcluded(arg, excluded) {
+			args = append(args, arg)
+		}
+	}
+	return strings.Join(args, " ")
+}
+
+func isExcluded(entry string, excluded []string) bool {
+	for _, exclude := range excluded {
+		if entry == exclude {
+			return true
+		}
+	}
+	return false
 }
 
 func logInfo(message string, params ...interface{}) {
