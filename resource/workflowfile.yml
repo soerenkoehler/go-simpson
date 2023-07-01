@@ -10,12 +10,12 @@ jobs:
 
     steps:
       - name: Setup Go environment
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4.0.1
         with:
-          go-version: ${GO_UTIL_BUILD_GOVERSION}
+          go-version: "${GO_UTIL_BUILD_GOVERSION}"
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.5.3
 
       - name: Setup Environment
         run: |
