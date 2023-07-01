@@ -11,8 +11,8 @@ jobs:
     steps:
       - name: Setup Go environment
         uses: actions/setup-go@v4.0.1
-        with:
-          go-version: ${GO_UTIL_BUILD_GOVERSION}
+        # with:
+        #   go-version: ${GO_UTIL_BUILD_GOVERSION}
 
       - name: Checkout
         uses: actions/checkout@v3.5.3
