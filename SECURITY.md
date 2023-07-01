@@ -11,7 +11,7 @@
 
 To report any vulnerability or bugs open an issue at:
 
-https://github.com/soerenkoehler/go-simpson/issues
+https://github.com/soerenkoehler/go-util-build/issues
 
 Resource considerations: Real life will always out-prioritise non-commercial
 open source hobby projects. So don't expect 24/7 support with 30min response

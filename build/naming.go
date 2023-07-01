@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/soerenkoehler/go-simpson/util"
+	"github.com/soerenkoehler/go-util-build/util"
 )
 
 // Build dates in several formats.

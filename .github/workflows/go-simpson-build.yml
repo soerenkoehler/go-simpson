@@ -26,4 +26,4 @@ jobs:
 
       - name: Build
         run: |
-          go run github.com/soerenkoehler/go-simpson@main --skip-upload
+          go run github.com/soerenkoehler/go-util-build@main --skip-upload

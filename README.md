@@ -1,11 +1,11 @@
-Simpson
-=======
+Go-Util-Build
+=============
 
-*Simpson* is a **B**uild **A**nd **R**elease **T**ool for Go on Github. It runs
-in a shell script task of a Github Action.
+*Go-Util-Build* is a simple build and release tool for Go on Github. It runs in
+a shell script task of a Github Action.
 
-What Simpson Will Do
---------------------
+What Go-Util-Build Will Do
+--------------------------
 
 *   with the same command build executable artifacts locally and on CI pipeline
     (currently: Github only)
@@ -17,10 +17,11 @@ What Simpson Will Do
     *   Linux: tgz
 *   create sha256-digests of generated artifacts
 
-What Simpson Won't Do
----------------------
+What Go-Util-Build Won't Do
+---------------------------
 
-*   build pure libraries (aka collections of packages that don't have any executable part)
+*   build pure libraries (aka collections of packages that don't have any
+    executable part)
 *   support CGO (For this you may have a look at XGO and its forks.)
 
 Usage
@@ -28,10 +29,10 @@ Usage
 
 ### Invocation and Module Aware Mode ###
 
-You run *Simpson* like this:
+You run *Go-Util-Build* like this:
 
 ```
-go run github.com/soerenkoehler/go-simpson@main [MAINPACKAGE] [OPTIONS...]
+go run github.com/soerenkoehler/go-Go-Util-Build@main [MAINPACKAGE] [OPTIONS...]
 ```
 
 You may replace `@main` with a different version if desired. But you must
@@ -40,13 +41,13 @@ run`][go-docs-run]).
 
 ### Local Build ###
 
-Just run *Simpson* **without** the option `--init`. Then the following Go
+Just run *Go-Util-Build* **without** the option `--init`. Then the following Go
 commands will run:
 
 *   `go vet` & `go test` for all packages in your module
 *   `go build` for the given main package
 
-*Simpson* then creates a directory `artifacts` with:
+*Go-Util-Build* then creates a directory `artifacts` with:
 
 *   artifact directories and archive files for all specified targets
 *   a SHA256 file with checksums for all archives
@@ -55,16 +56,16 @@ commands will run:
 
 1.  Prepare the workflow file
     
-    Run *Simpson* locally **with** option `--init`:
+    Run *Go-Util-Build* locally **with** option `--init`:
 
-    This will create a Github workflow file which will call *Simpson* in a
+    This will create a Github workflow file which will call *Go-Util-Build* in a
     Github action to build and release your module.
 
     The current workflow template file runs Go with `GOPROXY=direct`. If you do
     not want this, feel free to edit the workflow file.
 
-2.  Push a branch containing the workflow file to Github. *Simpson* will run and
-    create a release `latest`.
+2.  Push a branch containing the workflow file to Github. *Go-Util-Build* will
+    run and create a release `latest`.
 
     **Warning:** The tag `latest` will change with every push. While fetching or
     pulling tags your local Git client will fail with the error:
@@ -87,7 +88,7 @@ commands will run:
     *   In other IDEs consult your friendly IDE manual.
 
 3.  Push a tag in the semver format `v<MAJOR>.<MINOR>.<PATCH>` (or create it in
-    the Github UI). *Simpson* will run and create a release for this tag.
+    the Github UI). *Go-Util-Build* will run and create a release for this tag.
 
 ### Options ###
 
@@ -120,7 +121,7 @@ Local         | MAINPACKAGE-DATE-TIME-PLATFORM
 Github Latest | MAINPACKAGE-DATE-TIME-HASH-PLATFORM
 Github Named  | MAINPACKAGE-VERSION
 
-*Simpson* also injects the version string as `main._Version` into the build.
+*Go-Util-Build* also injects the version string as `main._Version` into the
+build.
 
 [go-docs-run]: https://pkg.go.dev/cmd/go#hdr-Compile_and_run_Go_program
-

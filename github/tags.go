@@ -3,7 +3,7 @@ package github
 import (
 	"fmt"
 
-	"github.com/soerenkoehler/go-simpson/util"
+	"github.com/soerenkoehler/go-util-build/util"
 )
 
 func (context Context) setTag(tag string, sha string) {
