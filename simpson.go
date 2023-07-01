@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/soerenkoehler/go-simpson/build"
-	"github.com/soerenkoehler/go-simpson/github"
-	"github.com/soerenkoehler/go-simpson/util"
+	"github.com/soerenkoehler/go-util-build/build"
+	"github.com/soerenkoehler/go-util-build/github"
+	"github.com/soerenkoehler/go-util-build/util"
 )
 
 //go:embed resource/workflowfile.yml
@@ -96,7 +96,7 @@ func doMain() error {
 }
 
 func initializeWorkflowFile() error {
-	workflowFile := ".github/workflows/go-simpson-build.yml"
+	workflowFile := ".github/workflows/go-util-build.yml"
 
 	goInfo := util.FindInFile("go.mod", `^\s*go\s+(.+)$`)
 
@@ -120,8 +120,8 @@ func initializeWorkflowFile() error {
 		util.ReplaceMultiple(
 			workflowFileTemplate,
 			map[string]string{
-				"${SIMPSON_CMDLINE}":   filterCommandLine("--init"),
-				"${SIMPSON_GOVERSION}": goInfo[1]})))
+				"${GO_UTIL_BUILD_CMDLINE}":   filterCommandLine("--init"),
+				"${GO_UTIL_BUILD_GOVERSION}": goInfo[1]})))
 
 	return nil
 }

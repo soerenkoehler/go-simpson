@@ -1,4 +1,4 @@
-name: Build And Release Tool
+name: Go-Util-Build
 
 on:
   push
@@ -12,7 +12,7 @@ jobs:
       - name: Setup Go environment
         uses: actions/setup-go@v2
         with:
-          go-version: ${SIMPSON_GOVERSION}
+          go-version: ${GO_UTIL_BUILD_GOVERSION}
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -26,4 +26,4 @@ jobs:
 
       - name: Build
         run: |
-          go run github.com/soerenkoehler/go-simpson@main ${SIMPSON_CMDLINE}
+          go run github.com/soerenkoehler/go-util-build@main ${GO_UTIL_BUILD_CMDLINE}
