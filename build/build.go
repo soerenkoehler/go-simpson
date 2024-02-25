@@ -28,10 +28,25 @@ func TestAndBuild(
 
 // Test runs 'go test' for all packages in the current module.
 func Test() error {
-	if err := util.Execute([]string{"go", "vet", "./..."}); err != nil {
+	if err := util.Execute([]string{
+		"go",
+		"vet",
+		"./..."}); err != nil {
 		return err
 	}
-	return util.Execute([]string{"go", "test", "--cover", "./..."})
+	if err := util.Execute([]string{
+		"go",
+		"test",
+		"-cover",
+		"-coverprofile=coverage.out",
+		"./..."}); err != nil {
+		return err
+	}
+	return util.Execute([]string{
+		"go",
+		"tool",
+		"cover",
+		"-func=coverage.out"})
 }
 
 // Build runs 'go build' for the named package and supplied target definitions.
