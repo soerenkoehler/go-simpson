@@ -1,5 +1,5 @@
 module github.com/soerenkoehler/go-util-build
 
-go 1.20
+go 1.23
 
-require github.com/alecthomas/kong v0.8.0
+require github.com/alecthomas/kong v0.9.0
