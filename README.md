@@ -1,3 +1,11 @@
+Deprecation notice: When I started the project, Github CLI was not much evolved.
+
+As of today:
+*   The deployment can be handled via GH CLI (see https://github.com/soerenkoehler/bash-util-github-release).
+*   The build shall be done simply using the official toolchains in Github Actions.
+
+----
+
 Go-Util-Build
 =============
 
